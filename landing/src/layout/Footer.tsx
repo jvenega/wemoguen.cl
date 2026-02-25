@@ -11,12 +11,14 @@ import FacebookIcon from "@mui/icons-material/Facebook";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 
+const BRAND_PURPLE_DARK = "#4B2863";
+
 export default function Footer() {
   return (
     <Box
       component="footer"
       sx={{
-        backgroundColor: "#1f1f1f",
+        backgroundColor: BRAND_PURPLE_DARK,
         color: "#fff",
         pt: 8,
         pb: 4,
@@ -34,12 +36,12 @@ export default function Footer() {
           <Box maxWidth={350}>
             <Box
               component="img"
-              src="/logo.png"
+              src="/logo2.png"
               alt="WE-MOGÜEN"
-              height={50}
+              height={55}
               mb={2}
             />
-            <Typography color="rgba(255,255,255,0.8)">
+            <Typography color="rgba(255,255,255,0.85)">
               Asociación de Usuarios de Medicina Ancestral
             </Typography>
           </Box>
@@ -73,25 +75,40 @@ export default function Footer() {
 
             <Box display="flex" gap={1}>
               <IconButton
-                color="inherit"
                 href="#"
                 aria-label="Facebook"
+                sx={{
+                  color: "#fff",
+                  "&:hover": {
+                    backgroundColor: "#6C3A8C",
+                  },
+                }}
               >
                 <FacebookIcon />
               </IconButton>
 
               <IconButton
-                color="inherit"
                 href="#"
                 aria-label="Instagram"
+                sx={{
+                  color: "#fff",
+                  "&:hover": {
+                    backgroundColor: "#6C3A8C",
+                  },
+                }}
               >
                 <InstagramIcon />
               </IconButton>
 
               <IconButton
-                color="inherit"
                 href="#"
                 aria-label="WhatsApp"
+                sx={{
+                  color: "#fff",
+                  "&:hover": {
+                    backgroundColor: "#6C3A8C",
+                  },
+                }}
               >
                 <WhatsAppIcon />
               </IconButton>
@@ -102,7 +119,7 @@ export default function Footer() {
         <Divider sx={{ my: 4, borderColor: "rgba(255,255,255,0.2)" }} />
 
         <Box textAlign="center">
-          <Typography variant="body2" color="rgba(255,255,255,0.6)">
+          <Typography variant="body2" color="rgba(255,255,255,0.7)">
             © 2025 WE-MOGÜEN. Todos los derechos reservados.
           </Typography>
         </Box>

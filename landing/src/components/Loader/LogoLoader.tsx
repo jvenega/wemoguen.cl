@@ -1,6 +1,8 @@
 import { Box } from "@mui/material";
 import { motion } from "framer-motion";
 
+const BRAND_PURPLE = "#6C3A8C";
+
 export default function LogoLoader() {
   return (
     <Box
@@ -16,14 +18,14 @@ export default function LogoLoader() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#585757",
+        backgroundColor: BRAND_PURPLE,
       }}
     >
       <Box
         component={motion.img}
-        src="/logo.png"
+        src="/logo2.png"
         alt="WE-MOGÜEN"
-        initial={{ scale: 0.9, opacity: 0.6 }}
+        initial={{ scale: 0.95, opacity: 0.7 }}
         animate={{
           scale: [0.95, 1.05, 0.95],
           opacity: [0.7, 1, 0.7],
@@ -34,9 +36,10 @@ export default function LogoLoader() {
           repeat: Infinity,
         }}
         sx={{
-          width: { xs: 140, sm: 180 },
+          width: { xs: 150, sm: 190 },
           userSelect: "none",
           pointerEvents: "none",
+          filter: "drop-shadow(0px 0px 18px rgba(255,255,255,0.25))",
         }}
       />
     </Box>

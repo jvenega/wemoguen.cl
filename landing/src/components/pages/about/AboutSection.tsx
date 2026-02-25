@@ -4,9 +4,7 @@ import {
   Typography,
   Card,
   CardContent,
-  Button,
 } from "@mui/material";
-import InstagramIcon from "@mui/icons-material/Instagram";
 import { motion } from "motion/react";
 
 export default function AboutSection() {
@@ -130,23 +128,7 @@ export default function AboutSection() {
           </Card>
         </Box>
 
-        {/* Instagram */}
-        <Box textAlign="center" mt={5}>
-          <Button
-            variant="outlined"
-            color="primary"
-            startIcon={<InstagramIcon />}
-            href="#"
-            target="_blank"
-            rel="noreferrer"
-            sx={{
-              borderRadius: 8,
-              px: 4,
-            }}
-          >
-            Instagram
-          </Button>
-        </Box>
+       
       </Container>
     </Box>
   );

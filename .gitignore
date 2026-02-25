@@ -32,3 +32,4 @@ landing/node_modules
 docs/
 docs/*
 to-prod/*
+/landing/to-prod

@@ -1,15 +1,15 @@
 import { Routes, Route } from "react-router-dom"
 import App from "@/App"
 import Home from "@/pages/Home"
-import Login from "@/pages/Login"
-import Cart from "@/pages/Cart"
-import Checkout from "@/pages/Checkout"
-import Transfer from "@/pages/Transfer"
-import Confirmation from "@/pages/Confirmation"
-import Orders from "@/pages/Order"
-
+import Login from "@/pages/auth/Login"
+import Cart from "@/pages/shop/Cart"
+import Checkout from "@/pages/shop/Checkout"
+import Transfer from "@/pages/shop/Transfer"
+import Confirmation from "@/pages/shop/Confirmation"
+import Orders from "@/pages/shop/Order"
+import SolicitudAcceso from "@/pages/auth/SolicitudAcceso"
 import ProtectedRoute from "@/features/auth/ProtectedRoute"
-import OrderDetail from "@/pages/OrderDetail"
+import OrderDetail from "@/pages/shop/OrderDetail"
 
 export default function AppRouter() {
   return (
@@ -19,6 +19,7 @@ export default function AppRouter() {
         {/* Públicas */}
         <Route index element={<Home />} />
         <Route path="login" element={<Login />} />
+        <Route path="solicitud-acceso" element={<SolicitudAcceso />} />
 
         {/* Protegidas */}
         <Route

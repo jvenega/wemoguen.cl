@@ -1,0 +1,26 @@
+[
+    {
+        "label": "Flores Medicinales",
+        "value": "flores",
+        "image": "/assets/nature-hero.jpg",
+        "description": "Variedades terapéuticas seleccionadas THC / CBD"
+    },
+    {
+        "label": "Aceites CBD",
+        "value": "aceites",
+        "image": "/assets/nature-hero2.jpg",
+        "description": "Extractos de espectro completo para bienestar"
+    },
+    {
+        "label": "Extractos Terapéuticos",
+        "value": "extractos",
+        "image": "/assets/nature-hero3.jpg",
+        "description": "Formulaciones concentradas para tratamiento"
+    },
+    {
+        "label": "Equipos Médicos",
+        "value": "equipos",
+        "image": "/assets/nature-hero4.jpg",
+        "description": "Dispositivos certificados para administración"
+    }
+]

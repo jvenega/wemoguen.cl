@@ -4,4 +4,5 @@ export type Product = {
   price: number
   image: string
   category: "flores" | "aceites" | "extractos" | "equipos"
+  discountPercentage?: number
 }

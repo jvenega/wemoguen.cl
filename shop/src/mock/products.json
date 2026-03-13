@@ -1,0 +1,47 @@
+[
+  {
+      "id": 1,
+      "name": "Flor Medicinal Balanceada 10% THC / 10% CBD",
+      "price": 28000,
+      "image": "/products/flor-balanceada.jpg",
+      "category": "flores",
+      "discountPercentage": 20
+  },
+  {
+      "id": 2,
+      "name": "Aceite CBD 30ml – Espectro Completo",
+      "price": 45000,
+      "image": "/products/aceite-cbd.jpg",
+      "category": "aceites"
+  },
+  {
+      "id": 3,
+      "name": "Extracto Terapéutico 1:1 THC/CBD",
+      "price": 52000,
+      "image": "/products/extracto.jpg",
+      "category": "extractos"
+  },
+  {
+      "id": 4,
+      "name": "Vaporizador Médico Portátil",
+      "price": 89000,
+      "image": "/products/vaporizador.jpg",
+      "category": "equipos",
+      "discountPercentage": 75
+  },
+  {
+      "id": 5,
+      "name": "Cápsulas de CBD 25mg – Paquete de 30",
+      "price": 35000,
+      "image": "/products/capsulas.jpg",
+      "category": "capsulas"
+  },
+  {
+      "id": 6,
+      "name": "Crema Analgésica con CBD 100mg",
+      "price": 22000,
+      "image": "/products/crema.jpg",
+      "category": "topicos"
+  }
+  
+]

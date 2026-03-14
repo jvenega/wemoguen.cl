@@ -1,78 +1,103 @@
+import { Check, FileText, ShieldCheck, Landmark, BadgeCheck } from "lucide-react"
+import { motion } from "framer-motion"
+
 interface Props {
-    currentStep: number
+  currentStep: number
 }
 
 const steps = [
-    "Solicitud",
-    "Validación",
-    "Transferencia",
-    "Confirmación",
+  { label: "Solicitud", icon: FileText },
+  { label: "Validación", icon: ShieldCheck },
+  { label: "Transferencia", icon: Landmark },
+  { label: "Confirmación", icon: BadgeCheck },
 ]
 
 export default function ProcessHeader({ currentStep }: Props) {
-    return (
-        <div className="mb-14">
-            <div className="flex items-center justify-between">
 
-                {steps.map((step, index) => {
-                    const stepNumber = index + 1
-                    const isActive = stepNumber === currentStep
-                    const isCompleted = stepNumber < currentStep
+  const progress =
+    ((currentStep - 1) / (steps.length - 1)) * 100
 
-                    return (
-                        <div
-                            key={step}
-                            className="flex items-center flex-1"
-                        >
-                            <div className="flex items-center gap-3">
+  return (
+    <div className="mb-16">
 
-                                {/* Círculo */}
-                                <div
-                                    className={`
-                    w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium
-                    ${isActive
-                                            ? "bg-[#4B2863] text-white"
-                                            : isCompleted
-                                                ? "bg-[#4B2863]/20 text-[#4B2863]"
-                                                : "bg-gray-200 text-gray-500"
-                                        }
+      {/* Progress container */}
+      <div className="relative">
+
+        {/* Base line */}
+        <div className="absolute top-5 left-0 w-full h-0.5 bg-gray-200" />
+
+        {/* Progress line */}
+        <motion.div
+          className="absolute top-5 left-0 h-0.5 bg-[#4B2863]"
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.5 }}
+        />
+
+        {/* Steps */}
+        <div className="relative flex justify-between">
+
+          {steps.map((step, index) => {
+
+            const StepIcon = step.icon
+            const stepNumber = index + 1
+
+            const isCompleted = stepNumber < currentStep
+            const isActive = stepNumber === currentStep
+
+            return (
+              <div
+                key={step.label}
+                className="flex flex-col items-center text-center w-24"
+              >
+
+                {/* Circle */}
+                <motion.div
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: isActive ? 1.1 : 1 }}
+                  className={`
+                    w-10 h-10 rounded-full flex items-center justify-center
+                    border transition
+                    ${
+                      isCompleted
+                        ? "bg-[#4B2863] text-white border-[#4B2863]"
+                        : isActive
+                        ? "bg-white text-[#4B2863] border-[#4B2863]"
+                        : "bg-gray-100 text-gray-400 border-gray-300"
+                    }
                   `}
-                                >
-                                    {stepNumber}
-                                </div>
+                >
 
-                                {/* Texto */}
-                                <span
-                                    className={`
-                    text-sm tracking-wide
-                    ${isActive
-                                            ? "text-[#4B2863] font-medium"
-                                            : isCompleted
-                                                ? "text-[#4B2863]"
-                                                : "text-gray-400"
-                                        }
-                  `}
-                                >
-                                    {step}
-                                </span>
-                            </div>
+                  {isCompleted ? (
+                    <Check size={18} />
+                  ) : (
+                    <StepIcon size={18} />
+                  )}
 
-                            {/* Línea */}
-                            {index < steps.length - 1 && (
-                                <div
-                                    className={`
-                    flex-1 h-0.5 mx-6
-                    ${isCompleted
-                                            ? "bg-[#4B2863]/40"
-                                            : "bg-gray-200"
-                                        }
+                </motion.div>
+
+                {/* Label */}
+                <span
+                  className={`
+                    mt-3 text-xs md:text-sm
+                    ${
+                      isActive
+                        ? "text-[#4B2863] font-medium"
+                        : isCompleted
+                        ? "text-gray-700"
+                        : "text-gray-400"
+                    }
                   `}
-                                />
-                            )}
-                        </div>
-                    )
-                })}
-            </div>
+                >
+                  {step.label}
+                </span>
+
+              </div>
+            )
+          })}
         </div>
-    )
+      </div>
+
+    </div>
+  )
 }

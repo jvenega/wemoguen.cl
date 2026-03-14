@@ -4,6 +4,10 @@ export type User = {
   email: string
   rut: number
   role: "PATIENT" | "ADMIN"
+  address: string
+  commune: string
+  city: string
+  
 }
 
 export type LoginPayload = {

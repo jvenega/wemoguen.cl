@@ -29,7 +29,14 @@ export type CreateOrderPayload = {
   patient: {
     fullName: string
     rut: number
-    email: string
+    email: string,
+  }
+  delivery: {
+    address: string
+    commune: string
+    city: string
+    preference: "AM" | "PM"
+    notes?: string
   }
   items: Array<{
     productId: number

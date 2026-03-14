@@ -8,6 +8,10 @@ const mockUser: User = {
   email: "demo@wemoguen.cl",
   role: "PATIENT",
   rut: 12345678-9,
+  address: "Calle Falsa 123, Ciudad",
+  commune: "Comuna Demo",
+  city: "Ciudad Demo",
+  
 }
 
 export async function loginRequest(

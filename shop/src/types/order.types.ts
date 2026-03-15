@@ -19,6 +19,7 @@ export type OrderItem = {
   image?: string
   priceAtPurchase: number
   quantity: number
+  price: number
 }
 
 export type Order = {
@@ -29,6 +30,8 @@ export type Order = {
   discount: number
   total: number
   createdAt: string
+  items: OrderItem[]
+  receiptUrl?: string
 }
 
 export type OrderDetail = Order & {

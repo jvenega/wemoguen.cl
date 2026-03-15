@@ -1,26 +1,62 @@
 [
-    {
-        "label": "Flores Medicinales",
-        "value": "flores",
-        "image": "/assets/nature-hero.jpg",
-        "description": "Variedades terapéuticas seleccionadas THC / CBD"
-    },
-    {
-        "label": "Aceites CBD",
-        "value": "aceites",
-        "image": "/assets/nature-hero2.jpg",
-        "description": "Extractos de espectro completo para bienestar"
-    },
-    {
-        "label": "Extractos Terapéuticos",
-        "value": "extractos",
-        "image": "/assets/nature-hero3.jpg",
-        "description": "Formulaciones concentradas para tratamiento"
-    },
-    {
-        "label": "Equipos Médicos",
-        "value": "equipos",
-        "image": "/assets/nature-hero4.jpg",
-        "description": "Dispositivos certificados para administración"
-    }
+  {
+    "label": "Flores Medicinales",
+    "value": "flores",
+    "image": "https://picsum.photos/seed/flores/600/400",
+    "description": "Variedades terapéuticas seleccionadas THC / CBD"
+  },
+  {
+    "label": "Aceites CBD",
+    "value": "aceites",
+    "image": "https://picsum.photos/seed/aceites/600/400",
+    "description": "Extractos de espectro completo para bienestar"
+  },
+  {
+    "label": "Extractos Terapéuticos",
+    "value": "extractos",
+    "image": "https://picsum.photos/seed/extractos/600/400",
+    "description": "Formulaciones concentradas para tratamiento"
+  },
+  {
+    "label": "Equipos Médicos",
+    "value": "equipos",
+    "image": "https://picsum.photos/seed/equipos/600/400",
+    "description": "Dispositivos certificados para administración"
+  },
+  {
+    "label": "Cápsulas CBD",
+    "value": "capsulas",
+    "image": "https://picsum.photos/seed/capsulas/600/400",
+    "description": "Dosis precisas de cannabidiol en cápsulas"
+  },
+  {
+    "label": "Productos Tópicos",
+    "value": "topicos",
+    "image": "https://picsum.photos/seed/topicos/600/400",
+    "description": "Cremas y bálsamos para alivio localizado"
+  },
+  {
+    "label": "Gomitas CBD",
+    "value": "gomitas",
+    "image": "https://picsum.photos/seed/gomitas/600/400",
+    "description": "Formato comestible con dosis controlada"
+  },
+  {
+    "label": "Kits Terapéuticos",
+    "value": "kits",
+    "image": "https://picsum.photos/seed/kits/600/400",
+    "description": "Soluciones completas para iniciar tratamiento"
+  },
+  {
+    "label": "Semillas Medicinales",
+    "value": "semillas",
+    "image": "https://picsum.photos/seed/semillas/600/400",
+    "description": "Genéticas seleccionadas para cultivo medicinal"
+  },
+  {
+    "label": "Accesorios",
+    "value": "accesorios",
+    "image": "https://picsum.photos/seed/accesorios/600/400",
+    "description": "Complementos y herramientas para uso medicinal"
+  }
 ]

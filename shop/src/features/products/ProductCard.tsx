@@ -70,7 +70,7 @@ export default function ProductCard({ product }: Props) {
             onClick={() => addItem(product)}
             aria-label={`Agregar ${product.name} al carrito`}
             size="sm"
-            className=" text-amber-50 w-full mt-3 text-xs md:text-sm flex items-center justify-center gap-2 bg-[#4B2863] hover:bg-[#3c1f4f] transition"
+            className="cursor-pointer text-amber-50 w-full mt-3 text-xs md:text-sm flex items-center justify-center gap-2 bg-[#4B2863] hover:bg-[#3c1f4f] transition"
           >
             <ShoppingCart className="h-4 w-4" />
             Solicitar

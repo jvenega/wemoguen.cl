@@ -2,12 +2,16 @@ import ProcessHeader from "@/components/checkout/ProcessHeader"
 import { useState } from "react"
 import { useParams, Navigate, useNavigate } from "react-router-dom"
 import { useOrder, useUploadReceipt } from "@/hooks/orders.hook"
+import { Upload } from "lucide-react"
+
+const ALLOWED_TYPES = ["image/png", "image/jpeg"]
 
 export default function Transfer() {
+
   const { id } = useParams()
   const navigate = useNavigate()
 
-  if (!id) return <Navigate to="/cart" replace />
+  if (!id) return <Navigate to="/carrito" replace />
 
   const { data: order, isLoading } = useOrder(id)
   const { mutateAsync, isPending } = useUploadReceipt()
@@ -19,16 +23,31 @@ export default function Transfer() {
     return <div className="p-10">Cargando solicitud...</div>
   }
 
+  const handleFileChange = (f: File | null) => {
+
+    if (!f) return
+
+    if (!ALLOWED_TYPES.includes(f.type)) {
+      setError("Solo se permiten imágenes PNG o JPEG.")
+      setFile(null)
+      return
+    }
+
+    setError(null)
+    setFile(f)
+  }
+
   const handleSubmit = async () => {
+
     if (!file) {
-      setError("Debe adjuntar el comprobante.")
+      setError("Debe adjuntar un comprobante en formato PNG o JPEG.")
       return
     }
 
     try {
       await mutateAsync({ id, file })
-      navigate(`/confirmation/${id}`)
-    } catch (err) {
+      navigate(`/confirmacion/${id}`)
+    } catch {
       setError("Error al subir comprobante.")
     }
   }
@@ -49,22 +68,26 @@ export default function Transfer() {
           por el equipo administrativo.
         </p>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12">
+        <div className="lg:grid-cols-[1fr_380px] gap-12">
 
           {/* BLOQUE PRINCIPAL */}
+
           <div className="bg-white rounded-3xl border border-gray-200 p-10 shadow-sm">
 
             {/* ID */}
+
             <div className="mb-12">
               <p className="text-sm text-muted-foreground">
                 Identificador de Solicitud
               </p>
+
               <p className="text-xl font-semibold text-[#4B2863] mt-1">
                 #{order.id}
               </p>
             </div>
 
-            {/* DATOS BANCARIOS 2 EN 2 */}
+            {/* DATOS BANCARIOS */}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12 mb-12">
 
               <div>
@@ -88,38 +111,61 @@ export default function Transfer() {
               </div>
 
               <div className="md:col-span-2">
-                <p className="text-sm text-muted-foreground">Correo de confirmación</p>
-                <p className="font-medium mt-1">pagos@wemoguen.cl</p>
+                <p className="text-sm text-muted-foreground">
+                  Correo de confirmación
+                </p>
+                <p className="font-medium mt-1">
+                  pagos@wemoguen.cl
+                </p>
               </div>
 
             </div>
 
             {/* MONTO */}
+
             <div className="bg-[#4B2863]/5 border border-[#4B2863]/20 rounded-2xl p-6 mb-12">
+
               <p className="text-sm text-muted-foreground mb-2">
                 Monto a transferir
               </p>
+
               <p className="text-3xl font-semibold text-[#4B2863]">
                 ${order.total.toLocaleString()}
               </p>
+
             </div>
 
-            {/* Upload */}
+            {/* UPLOAD */}
+
             <div className="space-y-4">
+
               <label className="block text-sm font-medium">
                 Adjuntar comprobante
               </label>
 
-              <input
-                title="..."
-                type="file"
-                onChange={(e) =>
-                  setFile(e.target.files?.[0] || null)
-                }
-              />
+              <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 cursor-pointer hover:bg-gray-50 transition">
+
+                <Upload className="h-6 w-6 mb-2 text-muted-foreground" />
+
+                <span className="text-sm text-muted-foreground">
+                  {file ? file.name : "Subir comprobante (PNG o JPEG)"}
+                </span>
+
+                <input
+                  type="file"
+                  accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                  className="hidden"
+                  onChange={(e) =>
+                    handleFileChange(e.target.files?.[0] || null)
+                  }
+                />
+
+              </label>
 
               {error && (
-                <p className="text-sm text-red-500">{error}</p>
+                <p className="text-sm text-red-500">
+                  {error}
+                </p>
               )}
 
               <button
@@ -129,8 +175,8 @@ export default function Transfer() {
               >
                 {isPending ? "Enviando..." : "Enviar comprobante"}
               </button>
-            </div>
 
+            </div>
 
             <p className="text-xs text-muted-foreground mt-6 leading-relaxed">
               La validación puede tardar hasta 24 horas hábiles.
@@ -139,36 +185,8 @@ export default function Transfer() {
 
           </div>
 
-          {/* RESUMEN LATERAL */}
-          <div className="bg-white rounded-3xl border border-gray-200 p-8 shadow-sm h-fit sticky top-24">
-
-            <h3 className="text-lg font-medium mb-6">
-              Resumen de Productos
-            </h3>
-
-            <div className="space-y-4 text-sm mb-6">
-              {order.items.map((item) => (
-                <div key={item.productId} className="flex justify-between">
-                  <span>
-                    {item.name} x{item.quantity}
-                  </span>
-                  <span>
-                    ${(item.price * item.quantity).toLocaleString()}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="border-t pt-6 flex justify-between items-center">
-              <span className="font-medium">Total</span>
-              <span className="text-xl font-semibold text-[#4B2863]">
-                ${order.total.toLocaleString()}
-              </span>
-            </div>
-
-          </div>
-
         </div>
+
       </div>
     </div>
   )

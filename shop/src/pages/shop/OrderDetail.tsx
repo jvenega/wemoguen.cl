@@ -12,7 +12,7 @@ export default function OrderDetail() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  if (!id) return <Navigate to="/orders" replace />
+  if (!id) return <Navigate to="/pedidos" replace />
 
   const { data: order, isLoading } = useOrder(id)
   const { mutateAsync, isPending } = useUploadReceipt()
@@ -116,14 +116,14 @@ export default function OrderDetail() {
             </div>
 
             {/* SUBIR COMPROBANTE */}
-            {order.status === "AWAITING_TRANSFER" && (
+            {order.status === "PENDING_PAYMENT" && (
               <div className="bg-white rounded-3xl border p-8 shadow-sm">
                 <h3 className="text-lg font-medium mb-6 text-[#4B2863]">
                   Subir Comprobante
                 </h3>
 
                 <input
-                title="..."
+                  title="Subir Comprobante"
                   type="file"
                   onChange={(e) =>
                     setFile(e.target.files?.[0] || null)
@@ -158,7 +158,7 @@ export default function OrderDetail() {
                 <div className="border rounded-xl overflow-hidden">
                   {order.receiptUrl.endsWith(".pdf") ? (
                     <iframe
-                    title="Comprobante PDF"
+                      title="Comprobante PDF"
                       src={order.receiptUrl}
                       className="w-full h-64"
                     />

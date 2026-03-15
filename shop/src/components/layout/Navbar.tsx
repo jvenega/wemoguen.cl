@@ -55,7 +55,7 @@ function RouteProgressBar() {
 
 const navItems = [
   { label: "Productos", icon: Home, path: "/" },
-  { label: "Mis pedidos", icon: Package, path: "/orders", auth: true },
+  { label: "Mis pedidos", icon: Package, path: "/pedidos", auth: true },
   { label: "Mi perfil", icon: UserCircle, path: "/profile", auth: true },
   { label: "Administración", icon: Shield, path: "/admin", admin: true }
 ]
@@ -132,7 +132,7 @@ export default function NavbarPremium() {
           <div className="flex items-center gap-5">
 
             {/* CART */}
-            <Link to="/cart" className="relative group flex items-center justify-center">
+            <Link to="/carrito" className="relative group flex items-center justify-center">
 
               <ShoppingCart className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
 
@@ -256,7 +256,7 @@ export default function NavbarPremium() {
                   <div className="border-t border-white/20 my-2" />
 
                   {!user && (
-                    <Link to="/login" className="flex items-center gap-3">
+                    <Link to="/iniciar-sesion" className="flex items-center gap-3">
                       <User className="h-5 w-5" />
                       Ingresar
                     </Link>

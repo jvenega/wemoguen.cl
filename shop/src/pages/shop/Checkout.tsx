@@ -68,7 +68,7 @@ export default function Checkout() {
 
       clearCart()
 
-      navigate(`/transfer/${order.id}`)
+      navigate(`/transferencia/${order.id}`)
 
     } catch (error) {
 

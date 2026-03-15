@@ -1,151 +1,150 @@
 [
   {
-    "id": 1,
-    "name": "Flor Medicinal Balanceada 10% THC / 10% CBD",
-    "price": 28000,
-    "image": "/products/flor-balanceada.jpg",
-    "category": "flores",
-    "discountPercentage": 0
-  },
-  {
-    "id": 2,
-    "name": "Aceite CBD 30ml – Espectro Completo",
-    "price": 45000,
-    "image": "/products/aceite-cbd.jpg",
-    "category": "aceites"
-  },
-  {
-    "id": 3,
-    "name": "Extracto Terapéutico 1:1 THC/CBD",
-    "price": 52000,
-    "image": "/products/extracto.jpg",
-    "category": "extractos"
-  },
-  {
-    "id": 4,
-    "name": "Vaporizador Médico Portátil",
-    "price": 89000,
-    "image": "/products/vaporizador.jpg",
-    "category": "equipos",
-    "discountPercentage": 10
-  },
-  {
-    "id": 5,
-    "name": "Cápsulas de CBD 25mg – Paquete de 30",
-    "price": 35000,
-    "image": "/products/capsulas.jpg",
-    "category": "capsulas"
-  },
-  {
-    "id": 6,
-    "name": "Crema Analgésica con CBD 100mg",
-    "price": 22000,
-    "image": "/products/crema.jpg",
-    "category": "topicos"
-  },
-  {
-    "id": 7,
-    "name": "Flor Medicinal Indica 18% THC",
-    "price": 32000,
-    "image": "/products/flor-indica.jpg",
-    "category": "flores",
+    "id": 21,
+    "name": "Aceite CBD 15ml – Espectro Completo Premium",
+    "price": 36000,
+    "image": "https://picsum.photos/seed/cbd21/600/600",
+    "category": "aceites",
     "discountPercentage": 5
   },
   {
-    "id": 8,
-    "name": "Flor Medicinal Sativa 16% THC",
-    "price": 31000,
-    "image": "/products/flor-sativa.jpg",
+    "id": 22,
+    "name": "Flor Medicinal Híbrida 14% THC",
+    "price": 29500,
+    "image": "https://picsum.photos/seed/cbd22/600/600",
     "category": "flores"
   },
   {
-    "id": 9,
-    "name": "Aceite CBD 10ml – Alta Concentración",
-    "price": 29000,
-    "image": "/products/aceite-cbd-10ml.jpg",
-    "category": "aceites",
-    "discountPercentage": 15
+    "id": 23,
+    "name": "Resina CBD Concentrada 70%",
+    "price": 47000,
+    "image": "https://picsum.photos/seed/cbd23/600/600",
+    "category": "extractos",
+    "discountPercentage": 7
   },
   {
-    "id": 10,
-    "name": "Tintura Relajante CBD + Melatonina",
-    "price": 39000,
-    "image": "/products/tintura-relajante.jpg",
-    "category": "aceites"
-  },
-  {
-    "id": 11,
-    "name": "Gomitas CBD 20mg – Frutos Rojos",
-    "price": 18000,
-    "image": "/products/gomitas-cbd.jpg",
-    "category": "gomitas",
-    "discountPercentage": 10
-  },
-  {
-    "id": 12,
-    "name": "Gomitas CBD 10mg – Mix Tropical",
-    "price": 15000,
-    "image": "/products/gomitas-tropical.jpg",
-    "category": "gomitas"
-  },
-  {
-    "id": 13,
-    "name": "Crema Muscular CBD + Árnica",
-    "price": 24000,
-    "image": "/products/crema-muscular.jpg",
-    "category": "topicos",
-    "discountPercentage": 5
-  },
-  {
-    "id": 14,
-    "name": "Bálsamo Calmante CBD 200mg",
-    "price": 26000,
-    "image": "/products/balsamo-cbd.jpg",
+    "id": 24,
+    "name": "Crema Calmante CBD + Lavanda",
+    "price": 21000,
+    "image": "https://picsum.photos/seed/cbd24/600/600",
     "category": "topicos"
   },
   {
-    "id": 15,
-    "name": "Kit Terapéutico CBD Inicio",
-    "price": 65000,
-    "image": "/products/kit-cbd.jpg",
-    "category": "kits",
-    "discountPercentage": 12
+    "id": 25,
+    "name": "Aceite CBD 50ml – Uso Terapéutico",
+    "price": 69000,
+    "image": "https://picsum.photos/seed/cbd25/600/600",
+    "category": "aceites",
+    "discountPercentage": 10
   },
   {
-    "id": 16,
-    "name": "Vaporizador de Hierbas Premium",
-    "price": 110000,
-    "image": "/products/vaporizador-premium.jpg",
-    "category": "equipos"
+    "id": 26,
+    "name": "Gomitas CBD 25mg – Naranja",
+    "price": 19000,
+    "image": "https://picsum.photos/seed/cbd26/600/600",
+    "category": "gomitas"
   },
   {
-    "id": 17,
-    "name": "Cartucho CBD para Vaporizador",
+    "id": 27,
+    "name": "Flor Medicinal CBD 12%",
     "price": 27000,
-    "image": "/products/cartucho-cbd.jpg",
+    "image": "https://picsum.photos/seed/cbd27/600/600",
+    "category": "flores",
+    "discountPercentage": 6
+  },
+  {
+    "id": 28,
+    "name": "Cápsulas CBD 50mg – Pack Terapéutico",
+    "price": 42000,
+    "image": "https://picsum.photos/seed/cbd28/600/600",
+    "category": "capsulas"
+  },
+  {
+    "id": 29,
+    "name": "Cartucho THC/CBD Balanceado",
+    "price": 31000,
+    "image": "https://picsum.photos/seed/cbd29/600/600",
     "category": "extractos",
     "discountPercentage": 8
   },
   {
-    "id": 18,
-    "name": "Semillas Medicinales CBD Auto",
-    "price": 20000,
-    "image": "/products/semillas-auto.jpg",
+    "id": 30,
+    "name": "Vaporizador Compacto Médico",
+    "price": 76000,
+    "image": "https://picsum.photos/seed/cbd30/600/600",
+    "category": "equipos"
+  },
+  {
+    "id": 31,
+    "name": "Bálsamo CBD + Mentol Refrescante",
+    "price": 23000,
+    "image": "https://picsum.photos/seed/cbd31/600/600",
+    "category": "topicos"
+  },
+  {
+    "id": 32,
+    "name": "Flor Medicinal Relax CBD 9%",
+    "price": 25000,
+    "image": "https://picsum.photos/seed/cbd32/600/600",
+    "category": "flores"
+  },
+  {
+    "id": 33,
+    "name": "Aceite THC/CBD 1:2 – Uso Nocturno",
+    "price": 41000,
+    "image": "https://picsum.photos/seed/cbd33/600/600",
+    "category": "aceites",
+    "discountPercentage": 10
+  },
+  {
+    "id": 34,
+    "name": "Kit Vaporizador + Cartucho CBD",
+    "price": 99000,
+    "image": "https://picsum.photos/seed/cbd34/600/600",
+    "category": "kits"
+  },
+  {
+    "id": 35,
+    "name": "Gomitas CBD 15mg – Mango",
+    "price": 17000,
+    "image": "https://picsum.photos/seed/cbd35/600/600",
+    "category": "gomitas"
+  },
+  {
+    "id": 36,
+    "name": "Extractor Manual para Rosin",
+    "price": 56000,
+    "image": "https://picsum.photos/seed/cbd36/600/600",
+    "category": "equipos",
+    "discountPercentage": 12
+  },
+  {
+    "id": 37,
+    "name": "Semillas Medicinales THC/CBD Mix",
+    "price": 23000,
+    "image": "https://picsum.photos/seed/cbd37/600/600",
     "category": "semillas"
   },
   {
-    "id": 19,
-    "name": "Grinder Metálico 4 Partes",
-    "price": 12000,
-    "image": "/products/grinder.jpg",
+    "id": 38,
+    "name": "Papel de Liar Orgánico Hemp",
+    "price": 7000,
+    "image": "https://picsum.photos/seed/cbd38/600/600",
     "category": "accesorios"
   },
   {
-    "id": 20,
-    "name": "Estuche Portátil para Vaporizador",
-    "price": 15000,
-    "image": "/products/estuche.jpg",
-    "category": "accesorios",
-    "discountPercentage": 20
+    "id": 39,
+    "name": "Filtro de Carbón Activo – Pack 50",
+    "price": 9000,
+    "image": "https://picsum.photos/seed/cbd39/600/600",
+    "category": "accesorios"
+  },
+  {
+    "id": 40,
+    "name": "Kit Terapéutico Dolor Crónico CBD",
+    "price": 72000,
+    "image": "https://picsum.photos/seed/cbd40/600/600",
+    "category": "kits",
+    "discountPercentage": 15
   }
 ]

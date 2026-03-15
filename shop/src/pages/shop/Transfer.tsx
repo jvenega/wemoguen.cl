@@ -1,4 +1,4 @@
-import ProcessHeader from "@/components/ProcessHeader"
+import ProcessHeader from "@/components/checkout/ProcessHeader"
 import { useState } from "react"
 import { useParams, Navigate, useNavigate } from "react-router-dom"
 import { useOrder, useUploadReceipt } from "@/hooks/orders.hook"

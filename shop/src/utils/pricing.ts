@@ -28,3 +28,10 @@ export const getItemSavings = (
 
   return discountAmount * quantity
 }
+
+export function formatCLP(value: number) {
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP"
+  }).format(value)
+}

@@ -1,11 +1,17 @@
 import { Check, FileText, ShieldCheck, Landmark, BadgeCheck } from "lucide-react"
 import { motion } from "framer-motion"
+import type { LucideIcon } from "lucide-react"
 
 interface Props {
   currentStep: number
 }
 
-const steps = [
+type Step = {
+  label: string
+  icon: LucideIcon
+}
+
+const steps: Step[] = [
   { label: "Solicitud", icon: FileText },
   { label: "Validación", icon: ShieldCheck },
   { label: "Transferencia", icon: Landmark },
@@ -14,27 +20,27 @@ const steps = [
 
 export default function ProcessHeader({ currentStep }: Props) {
 
+  const safeStep = Math.min(Math.max(currentStep, 1), steps.length)
+
   const progress =
-    ((currentStep - 1) / (steps.length - 1)) * 100
+    steps.length > 1
+      ? ((safeStep - 1) / (steps.length - 1)) * 100
+      : 0
 
   return (
-    <div className="mb-16">
+    <div className="mb-16" aria-label="Progreso del proceso">
 
-      {/* Progress container */}
       <div className="relative">
 
-        {/* Base line */}
         <div className="absolute top-5 left-0 w-full h-0.5 bg-gray-200" />
 
-        {/* Progress line */}
         <motion.div
-          className="absolute top-5 left-0 h-0.5 bg-[#4B2863]"
-          initial={{ width: 0 }}
+          className="absolute top-5 left-0 h-0.5 bg-primary"
+          initial={false}
           animate={{ width: `${progress}%` }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
         />
 
-        {/* Steps */}
         <div className="relative flex justify-between">
 
           {steps.map((step, index) => {
@@ -42,16 +48,15 @@ export default function ProcessHeader({ currentStep }: Props) {
             const StepIcon = step.icon
             const stepNumber = index + 1
 
-            const isCompleted = stepNumber < currentStep
-            const isActive = stepNumber === currentStep
+            const isCompleted = stepNumber < safeStep
+            const isActive = stepNumber === safeStep
 
             return (
               <div
                 key={step.label}
-                className="flex flex-col items-center text-center w-24"
+                className="flex flex-col items-center text-center flex-1"
               >
 
-                {/* Circle */}
                 <motion.div
                   initial={{ scale: 0.9 }}
                   animate={{ scale: isActive ? 1.1 : 1 }}
@@ -60,29 +65,26 @@ export default function ProcessHeader({ currentStep }: Props) {
                     border transition
                     ${
                       isCompleted
-                        ? "bg-[#4B2863] text-white border-[#4B2863]"
+                        ? "bg-primary text-white border-primary"
                         : isActive
-                        ? "bg-white text-[#4B2863] border-[#4B2863]"
+                        ? "bg-white text-primary border-primary"
                         : "bg-gray-100 text-gray-400 border-gray-300"
                     }
                   `}
                 >
 
-                  {isCompleted ? (
-                    <Check size={18} />
-                  ) : (
-                    <StepIcon size={18} />
-                  )}
+                  {isCompleted
+                    ? <Check size={18} />
+                    : <StepIcon size={18} />}
 
                 </motion.div>
 
-                {/* Label */}
                 <span
                   className={`
                     mt-3 text-xs md:text-sm
                     ${
                       isActive
-                        ? "text-[#4B2863] font-medium"
+                        ? "text-primary font-medium"
                         : isCompleted
                         ? "text-gray-700"
                         : "text-gray-400"
@@ -97,7 +99,6 @@ export default function ProcessHeader({ currentStep }: Props) {
           })}
         </div>
       </div>
-
     </div>
   )
 }

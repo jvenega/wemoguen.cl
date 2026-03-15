@@ -1,5 +1,5 @@
 import { useParams, Navigate } from "react-router-dom"
-import ProcessHeader from "@/components/ProcessHeader"
+import ProcessHeader from "@/components/checkout/ProcessHeader"
 import { useOrder } from "@/hooks/orders.hook"
 
 export default function Confirmation() {

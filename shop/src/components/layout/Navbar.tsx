@@ -11,21 +11,16 @@ import {
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/Avatar"
-
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
 import { useCartStore } from "@/store/cart.store"
 import { useAuthStore } from "@/store/auth.store"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 
 /* ================================
-   PROGRESS BAR
+   ROUTE PROGRESS BAR
 ================================ */
 
 function RouteProgressBar() {
@@ -33,9 +28,9 @@ function RouteProgressBar() {
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
-    setProgress(25)
+    setProgress(30)
 
-    const t1 = setTimeout(() => setProgress(60), 120)
+    const t1 = setTimeout(() => setProgress(70), 120)
     const t2 = setTimeout(() => setProgress(100), 260)
     const t3 = setTimeout(() => setProgress(0), 420)
 
@@ -48,11 +43,22 @@ function RouteProgressBar() {
 
   return (
     <div
-      className="fixed top-0 left-0 h-0.75 bg-purple-400 z-200 transition-all duration-300 ease-out"
+      className="fixed top-0 left-0 h-0.75 bg-purple-400 z-200 transition-all duration-300"
       style={{ width: `${progress}%` }}
     />
   )
 }
+
+/* ================================
+   NAV CONFIG
+================================ */
+
+const navItems = [
+  { label: "Productos", icon: Home, path: "/" },
+  { label: "Mis pedidos", icon: Package, path: "/orders", auth: true },
+  { label: "Mi perfil", icon: UserCircle, path: "/profile", auth: true },
+  { label: "Administración", icon: Shield, path: "/admin", admin: true }
+]
 
 /* ================================
    NAVBAR
@@ -64,19 +70,27 @@ export default function NavbarPremium() {
   const logout = useAuthStore((s) => s.logout)
 
   const location = useLocation()
-
   const [openUserMenu, setOpenUserMenu] = useState(false)
-
-  const totalItems = items.reduce((acc, i) => acc + i.quantity, 0)
 
   useEffect(() => {
     setOpenUserMenu(false)
   }, [location.pathname])
 
+  const totalItems = useMemo(
+    () => items.reduce((acc, i) => acc + i.quantity, 0),
+    [items]
+  )
+
   const isActive = (path: string) =>
     location.pathname === path
       ? "text-white font-semibold"
       : "text-white/70 hover:text-white transition"
+
+  const visibleNav = navItems.filter((item) => {
+    if (item.admin && user?.role !== "ADMIN") return false
+    if (item.auth && !user) return false
+    return true
+  })
 
   return (
     <>
@@ -97,31 +111,20 @@ export default function NavbarPremium() {
           {/* DESKTOP NAV */}
           <nav className="hidden md:flex items-center gap-12 text-sm uppercase tracking-wide">
 
-            <Link to="/" className={`flex items-center gap-2 ${isActive("/")}`}>
-              <Home className="h-4 w-4" />
-              Productos
-            </Link>
+            {visibleNav.map((item) => {
+              const Icon = item.icon
 
-            {user && (
-              <Link to="/orders" className={`flex items-center gap-2 ${isActive("/orders")}`}>
-                <Package className="h-4 w-4" />
-                Mis pedidos
-              </Link>
-            )}
-
-            {user && (
-              <Link to="/profile" className={`flex items-center gap-2 ${isActive("/profile")}`}>
-                <UserCircle className="h-4 w-4" />
-                Mi perfil
-              </Link>
-            )}
-
-            {user?.role === "ADMIN" && (
-              <Link to="/admin" className={`flex items-center gap-2 ${isActive("/admin")}`}>
-                <Shield className="h-4 w-4" />
-                Administración
-              </Link>
-            )}
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center gap-2 ${isActive(item.path)}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              )
+            })}
 
           </nav>
 
@@ -130,13 +133,15 @@ export default function NavbarPremium() {
 
             {/* CART */}
             <Link to="/cart" className="relative group flex items-center justify-center">
-              <ShoppingCart className="h-5 w-5 transition-transform group-hover:scale-110" />
+
+              <ShoppingCart className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
 
               {totalItems > 0 && (
                 <Badge className="absolute -top-2 -right-2 text-xs bg-white text-[#4B2863]">
                   {totalItems}
                 </Badge>
               )}
+
             </Link>
 
             {/* USER DESKTOP */}
@@ -144,9 +149,14 @@ export default function NavbarPremium() {
               <div className="relative hidden md:block">
 
                 <button
-                  onClick={() => setOpenUserMenu((prev) => !prev)}
+                  type="button"
+                  title="Menú de usuario"
+                  onClick={() => setOpenUserMenu((p) => !p)}
+                  aria-haspopup="menu"
+                  aria-expanded={openUserMenu}
                   className="flex items-center gap-2 hover:opacity-90 transition"
                 >
+
                   <Avatar className="h-7 w-7">
                     <AvatarFallback className="bg-white text-[#4B2863] text-xs">
                       {user.fullName.charAt(0)}
@@ -154,19 +164,15 @@ export default function NavbarPremium() {
                   </Avatar>
 
                   <span className="text-sm">{user.fullName}</span>
+
                 </button>
 
                 {openUserMenu && (
                   <div className="absolute right-0 mt-4 w-56 bg-white text-gray-800 rounded-xl shadow-xl border overflow-hidden">
 
                     <div className="px-4 py-4 border-b bg-gray-50">
-                      <p className="text-sm font-medium">
-                        {user.fullName}
-                      </p>
-
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {user.email}
-                      </p>
+                      <p className="text-sm font-medium">{user.fullName}</p>
+                      <p className="text-xs text-gray-500 mt-1">{user.email}</p>
                     </div>
 
                     {user.role === "ADMIN" && (
@@ -203,17 +209,16 @@ export default function NavbarPremium() {
             {/* MOBILE MENU */}
             <Sheet>
               <SheetTrigger asChild>
-                <button className="md:hidden" title="...">
+                <button className="md:hidden" title="mob1">
                   <Menu className="h-6 w-6" />
                 </button>
               </SheetTrigger>
 
               <SheetContent
                 side="right"
-                className="bg-[#4B2863] text-white border-none w-70"
+                className="bg-[#4B2863] text-white border-none w-72"
               >
 
-                {/* USER INFO */}
                 {user && (
                   <div className="flex items-center gap-3 pb-6 border-b border-white/20">
 
@@ -231,34 +236,22 @@ export default function NavbarPremium() {
                   </div>
                 )}
 
-                {/* NAV */}
                 <div className="mt-8 flex flex-col gap-6 text-lg">
 
-                  <Link className="flex items-center gap-3" to="/">
-                    <Home className="h-5 w-5" />
-                    Productos
-                  </Link>
+                  {visibleNav.map((item) => {
+                    const Icon = item.icon
 
-                  {user && (
-                    <>
-                      <Link className="flex items-center gap-3" to="/orders">
-                        <Package className="h-5 w-5" />
-                        Mis pedidos
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className="flex items-center gap-3"
+                      >
+                        <Icon className="h-5 w-5" />
+                        {item.label}
                       </Link>
-
-                      <Link className="flex items-center gap-3" to="/profile">
-                        <UserCircle className="h-5 w-5" />
-                        Mi perfil
-                      </Link>
-                    </>
-                  )}
-
-                  {user?.role === "ADMIN" && (
-                    <Link className="flex items-center gap-3" to="/admin">
-                      <Shield className="h-5 w-5" />
-                      Administración
-                    </Link>
-                  )}
+                    )
+                  })}
 
                   <div className="border-t border-white/20 my-2" />
 

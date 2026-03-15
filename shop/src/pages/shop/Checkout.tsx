@@ -2,8 +2,8 @@ import { useNavigate } from "react-router-dom"
 import { useCartStore } from "@/store/cart.store"
 import { useAuthStore } from "@/store/auth.store"
 import { useCreateOrder } from "@/hooks/orders.hook"
-import ProcessHeader from "@/components/ProcessHeader"
-
+import ProcessHeader from "@/components/checkout/ProcessHeader"
+import type { Delivery } from "@/types/delivery.types"
 import DeliveryForm from "@/components/checkout/DeliveryForm"
 import ProductSummary from "@/components/checkout/ProductSummary"
 import OrderSummary from "@/components/checkout/OrderSummary"
@@ -11,25 +11,31 @@ import OrderSummary from "@/components/checkout/OrderSummary"
 import { useState } from "react"
 import { ChevronDown } from "lucide-react"
 
+
 export default function Checkout() {
 
   const navigate = useNavigate()
 
-  const { items, clearCart } = useCartStore()
-  const { user } = useAuthStore()
+  const items = useCartStore(s => s.items)
+  const clearCart = useCartStore(s => s.clearCart)
+
+  const user = useAuthStore(s => s.user)
+
   const { mutateAsync, isPending } = useCreateOrder()
 
   const [summaryOpen, setSummaryOpen] = useState(false)
 
-  const [delivery, setDelivery] = useState({
+  const [delivery, setDelivery] = useState<Delivery>({
     address: "",
     commune: "",
     city: "",
-    preference: "AM" as "AM" | "PM",
+    preference: "AM",
     notes: ""
   })
 
-  const isDeliveryValid = delivery.address && delivery.commune
+  const isDeliveryValid =
+    delivery.address.trim() !== "" &&
+    delivery.commune.trim() !== ""
 
   const handleConfirm = async () => {
 
@@ -44,18 +50,20 @@ export default function Checkout() {
     try {
 
       const order = await mutateAsync({
+
         patient: {
           fullName: user.fullName,
-          rut: user.rut,
-          email: user.email,
+          rut: String(user.rut),
+          email: user.email
         },
 
         delivery,
 
-        items: items.map((item) => ({
+        items: items.map(item => ({
           productId: item.id,
-          quantity: item.quantity,
-        })),
+          quantity: item.quantity
+        }))
+
       })
 
       clearCart()
@@ -63,9 +71,13 @@ export default function Checkout() {
       navigate(`/transfer/${order.id}`)
 
     } catch (error) {
+
       console.error("Error al crear solicitud:", error)
+
       alert("Ocurrió un error al crear la solicitud")
+
     }
+
   }
 
   return (
@@ -79,27 +91,29 @@ export default function Checkout() {
           Confirmación de solicitud
         </h1>
 
-        {/* Layout principal */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-10 lg:gap-16">
 
           {/* LEFT */}
           <div className="space-y-8 md:space-y-10">
 
-            {/* MOBILE SUMMARY TOGGLE */}
+            {/* MOBILE SUMMARY */}
             <div className="lg:hidden">
 
               <button
-                onClick={() => setSummaryOpen(!summaryOpen)}
+                onClick={() => setSummaryOpen(prev => !prev)}
                 className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center justify-between text-sm font-medium shadow-sm"
               >
                 Ver resumen de compra
+
                 <ChevronDown
                   size={18}
                   className={`transition ${summaryOpen ? "rotate-180" : ""}`}
                 />
+
               </button>
 
               {summaryOpen && (
+
                 <div className="mt-4 space-y-6">
 
                   <ProductSummary items={items} />
@@ -110,6 +124,7 @@ export default function Checkout() {
                   />
 
                 </div>
+
               )}
 
             </div>
@@ -118,12 +133,12 @@ export default function Checkout() {
             <DeliveryForm
               delivery={delivery}
               setDelivery={setDelivery}
-              user={user}
+              user={user ?? undefined}
             />
 
           </div>
 
-          {/* RIGHT (DESKTOP ONLY) */}
+          {/* RIGHT DESKTOP */}
           <div className="hidden lg:block space-y-8 sticky top-24 h-fit">
 
             <ProductSummary items={items} />

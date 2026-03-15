@@ -1,12 +1,7 @@
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 
-import {
-  FREE_SHIPPING_THRESHOLD,
-  SHIPPING_COST,
-  getItemSubtotal,
-  getItemSavings
-} from "@/utils/pricing"
+
 
 export type Product = {
   id: number
@@ -21,15 +16,6 @@ export type CartItem = Product & {
   quantity: number
 }
 
-type CartTotals = {
-  subtotal: number
-  originalSubtotal: number
-  savings: number
-  shipping: number
-  total: number
-  itemsCount: number
-}
-
 type CartState = {
   items: CartItem[]
   coupon?: string
@@ -39,8 +25,6 @@ type CartState = {
   updateQuantity: (id: number, quantity: number) => void
   clearCart: () => void
   applyCoupon: (code: string) => void
-
-  getCartTotals: () => CartTotals
 }
 
 const coupons: Record<string, number> = {
@@ -53,8 +37,6 @@ export const useCartStore = create<CartState>()(
 
       items: [],
       coupon: undefined,
-
-      /* ---------------- CART ACTIONS ---------------- */
 
       addItem: (product) => {
 
@@ -109,68 +91,12 @@ export const useCartStore = create<CartState>()(
         })
       },
 
-      /* ---------------- COUPONS ---------------- */
-
       applyCoupon: (code) => {
 
         const normalized = code.trim().toUpperCase()
 
         if (coupons[normalized]) {
           set({ coupon: normalized })
-        }
-
-      },
-
-      /* ---------------- TOTALS ---------------- */
-
-      getCartTotals: () => {
-
-        const { items, coupon } = get()
-
-        let subtotal = 0
-        let savings = 0
-        let originalSubtotal = 0
-        let itemsCount = 0
-
-        for (const item of items) {
-
-          const itemSubtotal = getItemSubtotal(
-            item.price,
-            item.quantity,
-            item.discountPercentage
-          )
-
-          const itemSavings = getItemSavings(
-            item.price,
-            item.quantity,
-            item.discountPercentage
-          )
-
-          subtotal += itemSubtotal
-          savings += itemSavings
-          originalSubtotal += item.price * item.quantity
-          itemsCount += item.quantity
-
-        }
-
-        const shipping =
-          subtotal >= FREE_SHIPPING_THRESHOLD
-            ? 0
-            : SHIPPING_COST
-
-        let total = subtotal + shipping
-
-        if (coupon && coupons[coupon]) {
-          total = total * (1 - coupons[coupon])
-        }
-
-        return {
-          subtotal: Math.round(subtotal),
-          originalSubtotal: Math.round(originalSubtotal),
-          savings: Math.round(savings),
-          shipping,
-          total: Math.round(total),
-          itemsCount
         }
 
       }

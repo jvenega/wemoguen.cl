@@ -5,7 +5,7 @@ import {
   useUploadReceipt,
 } from "@/hooks/orders.hook"
 import { useQueryClient } from "@tanstack/react-query"
-import ProcessHeader from "@/components/ProcessHeader"
+import ProcessHeader from "@/components/checkout/ProcessHeader"
 
 export default function OrderDetail() {
   const { id } = useParams()

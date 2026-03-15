@@ -1,5 +1,5 @@
 import { useMyOrders } from "@/hooks/orders.hook"
-import ProcessHeader from "@/components/ProcessHeader"
+import ProcessHeader from "@/components/checkout/ProcessHeader"
 import { Link } from "react-router-dom"
 
 function StatusBadge({ status }: { status: string }) {

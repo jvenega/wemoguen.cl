@@ -1,36 +1,55 @@
 import { useCartStore } from "@/store/cart.store"
 import { Link } from "react-router-dom"
-import ProcessHeader from "@/components/ProcessHeader"
+import ProcessHeader from "@/components/checkout/ProcessHeader"
 import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 
 const FREE_SHIPPING_THRESHOLD = 50000
+const SHIPPING_COST = 3500
 
 export default function Cart() {
 
-  const {
-    items,
-    removeItem,
-    updateQuantity,
-    applyCoupon,
-    getCartTotals
-  } = useCartStore()
+  const items = useCartStore(s => s.items)
+  const removeItem = useCartStore(s => s.removeItem)
+  const updateQuantity = useCartStore(s => s.updateQuantity)
 
-  const {
-    subtotal,
-    savings,
-    shipping,
-    total,
-    originalSubtotal
-  } = getCartTotals()
+  const [] = useState("")
 
-  const [coupon, setCoupon] = useState("")
+  useMemo(() => {
 
-  const remainingForFreeShipping =
-    FREE_SHIPPING_THRESHOLD - subtotal
+    let subtotal = 0
+    let originalSubtotal = 0
+    let savings = 0
 
-  const progress =
-    Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100)
+    for (const item of items) {
+
+      const price = item.discountPercentage
+        ? item.price - item.price * (item.discountPercentage / 100)
+        : item.price
+
+      subtotal += price * item.quantity
+      originalSubtotal += item.price * item.quantity
+      savings += (item.price - price) * item.quantity
+    }
+
+    const shipping = subtotal >= FREE_SHIPPING_THRESHOLD
+      ? 0
+      : SHIPPING_COST
+
+    const total = subtotal + shipping
+
+    return {
+      subtotal,
+      originalSubtotal,
+      savings,
+      shipping,
+      total
+    }
+
+  }, [items])
+
+
+  
 
   return (
     <div className="bg-[#f6f4f9] min-h-screen">
@@ -39,7 +58,6 @@ export default function Cart() {
 
         <ProcessHeader currentStep={1} />
 
-        {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-10">
 
           <h1 className="text-2xl md:text-3xl font-semibold text-[#4B2863]">
@@ -57,7 +75,6 @@ export default function Cart() {
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 lg:gap-14">
 
-          {/* PRODUCTOS */}
           <div className="space-y-6">
 
             {items.length === 0 && (
@@ -98,7 +115,6 @@ export default function Cart() {
                   className="bg-white border rounded-xl p-4 md:p-6 flex flex-col sm:flex-row gap-5 sm:items-center shadow-sm hover:shadow-md transition"
                 >
 
-                  {/* Imagen */}
                   <div className="relative w-20 h-20 md:w-24 md:h-24 shrink-0">
 
                     {item.discountPercentage && (
@@ -115,7 +131,6 @@ export default function Cart() {
 
                   </div>
 
-                  {/* Info */}
                   <div className="flex-1">
 
                     <p className="font-medium text-gray-800">
@@ -136,11 +151,10 @@ export default function Cart() {
 
                     </div>
 
-                    {/* Cantidad */}
                     <div className="flex items-center gap-3 mt-4">
 
                       <button
-                      title="q1"
+                        aria-label="Disminuir cantidad"
                         onClick={() =>
                           updateQuantity(item.id, item.quantity - 1)
                         }
@@ -154,7 +168,7 @@ export default function Cart() {
                       </span>
 
                       <button
-                      title="q2"
+                        aria-label="Aumentar cantidad"
                         onClick={() =>
                           updateQuantity(item.id, item.quantity + 1)
                         }
@@ -175,7 +189,6 @@ export default function Cart() {
 
                   </div>
 
-                  {/* Total */}
                   <div className="text-right sm:w-28">
 
                     <p className="text-xs text-gray-400">
@@ -193,113 +206,6 @@ export default function Cart() {
             })}
 
           </div>
-
-          {/* RESUMEN */}
-          {items.length > 0 && (
-            <div className="sticky top-24 h-fit">
-
-              <div className="bg-white border rounded-xl p-6 shadow-sm">
-
-                <h2 className="font-semibold mb-4">
-                  Resumen de la compra
-                </h2>
-
-                {/* ENVÍO GRATIS */}
-                {remainingForFreeShipping > 0 && (
-
-                  <div className="mb-5">
-
-                    <p className="text-xs text-gray-500 mb-2">
-                      Agrega ${remainingForFreeShipping.toLocaleString()} para envío gratis 🚚
-                    </p>
-
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-[#4B2863]"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-
-                  </div>
-
-                )}
-
-                <div className="space-y-3 text-sm">
-
-                  <div className="flex justify-between">
-                    <span>Productos</span>
-                    <span>${originalSubtotal.toLocaleString()}</span>
-                  </div>
-
-                  {savings > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Descuentos</span>
-                      <span>- ${savings.toLocaleString()}</span>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between">
-                    <span>Subtotal</span>
-                    <span>${subtotal.toLocaleString()}</span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span>Envío</span>
-                    <span>
-                      {shipping === 0
-                        ? "Gratis"
-                        : `$${shipping.toLocaleString()}`}
-                    </span>
-                  </div>
-
-                </div>
-
-                {/* Cupón */}
-                <div className="flex gap-2 mt-6">
-
-                  <input
-                    value={coupon}
-                    onChange={(e) => setCoupon(e.target.value)}
-                    placeholder="Código de descuento"
-                    className="flex-1 border rounded-lg px-3 py-2 text-sm"
-                  />
-
-                  <button
-                    onClick={() => applyCoupon(coupon)}
-                    className="px-4 py-2 bg-gray-100 rounded-lg text-sm hover:bg-gray-200"
-                  >
-                    Aplicar
-                  </button>
-
-                </div>
-
-                <div className="border-t mt-6 pt-6 flex justify-between items-center">
-
-                  <span className="font-medium text-lg">
-                    Total
-                  </span>
-
-                  <span className="text-2xl font-semibold text-[#4B2863]">
-                    ${total.toLocaleString()}
-                  </span>
-
-                </div>
-
-                <Link
-                  to="/checkout"
-                  className="block mt-6 w-full text-center rounded-lg bg-[#4B2863] py-3 text-white font-medium hover:bg-[#3c1f4f]"
-                >
-                  Continuar compra
-                </Link>
-
-                <p className="text-xs text-gray-400 text-center mt-3">
-                  🔒 Confirmarás tu solicitud antes de pagar
-                </p>
-
-              </div>
-
-            </div>
-          )}
 
         </div>
 

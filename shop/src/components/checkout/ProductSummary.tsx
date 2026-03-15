@@ -1,15 +1,21 @@
-export default function ProductSummary({ items }: any) {
+import type { CartItem } from "@/store/cart.store"
+
+interface Props {
+  items: CartItem[]
+}
+
+export default function ProductSummary({ items }: Props) {
 
   return (
-    <div className="bg-white rounded-3xl border border-gray-200 p-10 shadow-sm">
+    <div className="bg-white border rounded-2xl p-8 shadow-sm">
 
-      <h2 className="text-lg font-medium mb-8 text-[#4B2863]">
-        Productos Seleccionados
-      </h2>
+      <h3 className="text-lg font-medium mb-6 text-[#4B2863]">
+        Productos seleccionados
+      </h3>
 
-      <div className="space-y-6 max-h-64 overflow-y-auto pr-2">
+      <div className="space-y-4 text-sm">
 
-        {items.map((item: any) => {
+        {items.map((item) => {
 
           const price = item.discountPercentage
             ? item.price - item.price * (item.discountPercentage / 100)
@@ -18,28 +24,23 @@ export default function ProductSummary({ items }: any) {
           return (
             <div
               key={item.id}
-              className="flex justify-between items-center"
+              className="flex justify-between"
             >
 
-              <div>
-                <p className="font-medium text-[#4B2863]">
-                  {item.name}
-                </p>
+              <span>
+                {item.name} x{item.quantity}
+              </span>
 
-                <p className="text-sm text-muted-foreground">
-                  Cantidad: {item.quantity}
-                </p>
-              </div>
-
-              <p className="font-semibold text-[#4B2863]">
+              <span>
                 ${(price * item.quantity).toLocaleString()}
-              </p>
+              </span>
 
             </div>
           )
         })}
 
       </div>
+
     </div>
   )
 }

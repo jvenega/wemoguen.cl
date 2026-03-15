@@ -8,23 +8,27 @@ import { useQueryClient } from "@tanstack/react-query"
 import ProcessHeader from "@/components/checkout/ProcessHeader"
 
 export default function OrderDetail() {
+
   const { id } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  if (!id) return <Navigate to="/pedidos" replace />
-
-  const { data: order, isLoading } = useOrder(id)
+  const { data: order, isLoading } = useOrder(id!)
   const { mutateAsync, isPending } = useUploadReceipt()
 
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  if (!id) {
+    return <Navigate to="/pedidos" replace />
+  }
 
   if (isLoading || !order) {
     return <div className="p-10">Cargando...</div>
   }
 
   const handleUpload = async () => {
+
     if (!file) {
       setError("Seleccione un archivo.")
       return
@@ -45,12 +49,13 @@ export default function OrderDetail() {
 
         <ProcessHeader currentStep={4} />
 
-        {/* Header */}
         <div className="flex justify-between items-center mb-10">
+
           <div>
             <h1 className="text-3xl font-semibold text-[#4B2863]">
               Solicitud #{order.id}
             </h1>
+
             <p className="text-muted-foreground mt-2">
               {new Date(order.createdAt).toLocaleDateString()}
             </p>
@@ -62,11 +67,11 @@ export default function OrderDetail() {
           >
             ← Volver
           </button>
+
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-16">
 
-          {/* PRODUCTOS */}
           <div className="space-y-6">
             {order.items.map((item) => (
               <div
@@ -98,11 +103,10 @@ export default function OrderDetail() {
             ))}
           </div>
 
-          {/* PANEL DERECHO */}
           <div className="space-y-8">
 
-            {/* RESUMEN */}
             <div className="bg-white rounded-3xl border p-8 shadow-sm">
+
               <h3 className="text-lg font-medium mb-6 text-[#4B2863]">
                 Resumen Financiero
               </h3>
@@ -113,11 +117,13 @@ export default function OrderDetail() {
                   ${order.total.toLocaleString()}
                 </span>
               </div>
+
             </div>
 
-            {/* SUBIR COMPROBANTE */}
             {order.status === "PENDING_PAYMENT" && (
+
               <div className="bg-white rounded-3xl border p-8 shadow-sm">
+
                 <h3 className="text-lg font-medium mb-6 text-[#4B2863]">
                   Subir Comprobante
                 </h3>
@@ -145,36 +151,49 @@ export default function OrderDetail() {
                     ? "Enviando..."
                     : "Enviar Comprobante"}
                 </button>
+
               </div>
+
             )}
 
-            {/* 🔥 PREVIEW DEL COMPROBANTE */}
             {order.receiptUrl && (
+
               <div className="bg-white rounded-3xl border p-8 shadow-sm">
+
                 <h3 className="text-lg font-medium mb-6 text-[#4B2863]">
                   Comprobante Enviado
                 </h3>
 
                 <div className="border rounded-xl overflow-hidden">
+
                   {order.receiptUrl.endsWith(".pdf") ? (
+
                     <iframe
                       title="Comprobante PDF"
                       src={order.receiptUrl}
                       className="w-full h-64"
                     />
+
                   ) : (
+
                     <img
                       src={order.receiptUrl}
                       alt="Comprobante"
                       className="w-full object-contain"
                     />
+
                   )}
+
                 </div>
+
               </div>
+
             )}
 
           </div>
+
         </div>
+
       </div>
     </div>
   )

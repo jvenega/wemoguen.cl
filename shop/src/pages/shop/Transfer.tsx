@@ -11,13 +11,15 @@ export default function Transfer() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  if (!id) return <Navigate to="/carrito" replace />
-
-  const { data: order, isLoading } = useOrder(id)
+  const { data: order, isLoading } = useOrder(id!)
   const { mutateAsync, isPending } = useUploadReceipt()
 
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  if (!id) {
+    return <Navigate to="/carrito" replace />
+  }
 
   if (isLoading || !order) {
     return <div className="p-10">Cargando solicitud...</div>
@@ -139,11 +141,17 @@ export default function Transfer() {
 
             <div className="space-y-4">
 
-              <label className="block text-sm font-medium">
+              <label
+                htmlFor="receipt"
+                className="block text-sm font-medium"
+              >
                 Adjuntar comprobante
               </label>
 
-              <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 cursor-pointer hover:bg-gray-50 transition">
+              <label
+                htmlFor="receipt"
+                className="flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 cursor-pointer hover:bg-gray-50 transition"
+              >
 
                 <Upload className="h-6 w-6 mb-2 text-muted-foreground" />
 
@@ -152,6 +160,7 @@ export default function Transfer() {
                 </span>
 
                 <input
+                  id="receipt"
                   type="file"
                   accept=".png,.jpg,.jpeg,image/png,image/jpeg"
                   className="hidden"

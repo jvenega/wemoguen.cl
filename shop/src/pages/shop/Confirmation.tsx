@@ -9,9 +9,11 @@ export default function Confirmation() {
 
   const { id } = useParams()
 
-  if (!id) return <Navigate to="/" replace />
+  const { data: order, isLoading } = useOrder(id!)
 
-  const { data: order, isLoading } = useOrder(id)
+  if (!id) {
+    return <Navigate to="/" replace />
+  }
 
   if (isLoading || !order) {
     return (
@@ -30,8 +32,6 @@ export default function Confirmation() {
 
         <div className="bg-white rounded-3xl border p-10 md:p-12 shadow-sm text-center">
 
-          {/* ICON */}
-
           <div className="flex justify-center mb-6">
 
             <div className="bg-green-100 text-green-600 rounded-full p-4">
@@ -40,8 +40,6 @@ export default function Confirmation() {
 
           </div>
 
-          {/* TITLE */}
-
           <h1 className="text-3xl font-semibold text-[#4B2863] mb-2">
             Solicitud enviada
           </h1>
@@ -49,8 +47,6 @@ export default function Confirmation() {
           <p className="text-muted-foreground mb-8">
             Su solicitud ha sido registrada correctamente.
           </p>
-
-          {/* ORDER INFO */}
 
           <div className="bg-[#4B2863]/5 border border-[#4B2863]/20 rounded-2xl p-6 mb-8">
 
@@ -89,8 +85,6 @@ export default function Confirmation() {
 
           </div>
 
-          {/* INFO */}
-
           <div className="text-sm text-muted-foreground mb-10 leading-relaxed">
 
             Su comprobante será revisado por el equipo administrativo.
@@ -98,8 +92,6 @@ export default function Confirmation() {
             Recibirá una notificación cuando su solicitud sea aprobada.
 
           </div>
-
-          {/* ACTIONS */}
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
 

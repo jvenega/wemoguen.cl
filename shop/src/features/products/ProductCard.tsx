@@ -3,24 +3,21 @@ import { Button } from "@/components/ui/button"
 import { ShoppingCart } from "lucide-react"
 
 import { useCartStore } from "@/store/cart.store"
+import type { Product } from "@/store/cart.store"
 
-interface Product {
-  id: number
-  name: string
-  price: number
-  image: string
-  category?: string
-  discountPercentage?: number
+interface Props {
+  product: Product
 }
 
-export default function ProductCard({ product }: { product: Product }) {
-  const addItem = useCartStore((state) => state.addItem)
+export default function ProductCard({ product }: Props) {
 
-  const hasDiscount =
-    product.discountPercentage && product.discountPercentage > 0
+  const addItem = useCartStore(s => s.addItem)
+
+  const discount = product.discountPercentage ?? 0
+  const hasDiscount = discount > 0
 
   const finalPrice = hasDiscount
-    ? Math.round(product.price * (1 - product.discountPercentage! / 100))
+    ? Math.round(product.price * (1 - discount / 100))
     : product.price
 
   return (
@@ -39,11 +36,9 @@ export default function ProductCard({ product }: { product: Product }) {
             loading="lazy"
           />
 
-          {/* DISCOUNT BADGE */}
-
           {hasDiscount && (
             <div className="absolute top-2 right-2 bg-red-500 text-white text-[11px] px-2 py-0.5 rounded-full shadow">
-              -{product.discountPercentage}%
+              -{discount}%
             </div>
           )}
 
@@ -53,13 +48,9 @@ export default function ProductCard({ product }: { product: Product }) {
 
         <div className="mt-3">
 
-          {/* NAME */}
-
           <h2 className="text-xs md:text-sm font-medium text-gray-800 line-clamp-2 min-h-8">
             {product.name}
           </h2>
-
-          {/* PRICE */}
 
           <div className="mt-1 flex items-end gap-2">
 
@@ -75,14 +66,13 @@ export default function ProductCard({ product }: { product: Product }) {
 
           </div>
 
-          {/* BUTTON */}
-
           <Button
             onClick={() => addItem(product)}
+            aria-label={`Agregar ${product.name} al carrito`}
             size="sm"
-            className="w-full mt-3 text-xs md:text-sm flex items-center justify-center gap-2 bg-[#4B2863] hover:bg-[#3c1f4f] transition"
+            className=" text-amber-50 w-full mt-3 text-xs md:text-sm flex items-center justify-center gap-2 bg-[#4B2863] hover:bg-[#3c1f4f] transition"
           >
-            <ShoppingCart className="h-4 w-4"/>
+            <ShoppingCart className="h-4 w-4" />
             Solicitar
           </Button>
 

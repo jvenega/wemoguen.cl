@@ -2,7 +2,7 @@ import { useCartStore } from "@/store/cart.store"
 import { Link } from "react-router-dom"
 import ProcessHeader from "@/components/checkout/ProcessHeader"
 import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react"
-import { useState, useMemo } from "react"
+import { useMemo } from "react"
 
 const FREE_SHIPPING_THRESHOLD = 50000
 const SHIPPING_COST = 3500
@@ -13,9 +13,12 @@ export default function Cart() {
   const removeItem = useCartStore(s => s.removeItem)
   const updateQuantity = useCartStore(s => s.updateQuantity)
 
-  const [] = useState("")
-
-  useMemo(() => {
+  const {
+    subtotal,
+    savings,
+    shipping,
+    total
+  } = useMemo(() => {
 
     let subtotal = 0
     let originalSubtotal = 0
@@ -32,9 +35,10 @@ export default function Cart() {
       savings += (item.price - price) * item.quantity
     }
 
-    const shipping = subtotal >= FREE_SHIPPING_THRESHOLD
-      ? 0
-      : SHIPPING_COST
+    const shipping =
+      subtotal >= FREE_SHIPPING_THRESHOLD
+        ? 0
+        : SHIPPING_COST
 
     const total = subtotal + shipping
 
@@ -47,9 +51,6 @@ export default function Cart() {
     }
 
   }, [items])
-
-
-  
 
   return (
     <div className="bg-[#f6f4f9] min-h-screen">
@@ -75,9 +76,12 @@ export default function Cart() {
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 lg:gap-14">
 
+          {/* IZQUIERDA */}
+
           <div className="space-y-6">
 
             {items.length === 0 && (
+
               <div className="bg-white rounded-xl p-12 text-center border shadow-sm">
 
                 <ShoppingCart
@@ -101,6 +105,7 @@ export default function Cart() {
                 </Link>
 
               </div>
+
             )}
 
             {items.map((item) => {
@@ -110,10 +115,13 @@ export default function Cart() {
                 : item.price
 
               return (
+
                 <div
                   key={item.id}
                   className="bg-white border rounded-xl p-4 md:p-6 flex flex-col sm:flex-row gap-5 sm:items-center shadow-sm hover:shadow-md transition"
                 >
+
+                  {/* IMAGE */}
 
                   <div className="relative w-20 h-20 md:w-24 md:h-24 shrink-0">
 
@@ -130,6 +138,8 @@ export default function Cart() {
                     />
 
                   </div>
+
+                  {/* CONTENT */}
 
                   <div className="flex-1">
 
@@ -150,6 +160,8 @@ export default function Cart() {
                       </span>
 
                     </div>
+
+                    {/* QUANTITY */}
 
                     <div className="flex items-center gap-3 mt-4">
 
@@ -179,6 +191,8 @@ export default function Cart() {
 
                     </div>
 
+                    {/* REMOVE */}
+
                     <button
                       onClick={() => removeItem(item.id)}
                       className="text-xs text-red-500 mt-3 flex items-center gap-1"
@@ -188,6 +202,8 @@ export default function Cart() {
                     </button>
 
                   </div>
+
+                  {/* ITEM TOTAL */}
 
                   <div className="text-right sm:w-28">
 
@@ -202,8 +218,60 @@ export default function Cart() {
                   </div>
 
                 </div>
+
               )
             })}
+
+          </div>
+
+          {/* DERECHA */}
+
+          <div className="hidden lg:block">
+
+            <div className="bg-white border rounded-xl p-6 shadow-sm sticky top-24">
+
+              <h3 className="text-lg font-semibold text-[#4B2863] mb-6">
+                Resumen de solicitud
+              </h3>
+
+              <div className="space-y-3 text-sm">
+
+                {savings > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Ahorro</span>
+                    <span>- ${savings.toLocaleString()}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>${subtotal.toLocaleString()}</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span>Envío</span>
+                  <span>
+                    {shipping === 0
+                      ? "Gratis"
+                      : `$${shipping.toLocaleString()}`}
+                  </span>
+                </div>
+
+              </div>
+
+              <div className="border-t mt-6 pt-6 flex justify-between font-semibold text-[#4B2863] text-lg">
+                <span>Total</span>
+                <span>${total.toLocaleString()}</span>
+              </div>
+
+              <Link
+                to="/checkout"
+                className="block text-center w-full mt-6 bg-[#4B2863] text-white py-3 rounded-lg hover:bg-[#3c1f4f] transition"
+              >
+                Continuar solicitud
+              </Link>
+
+            </div>
 
           </div>
 

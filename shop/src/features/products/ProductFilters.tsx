@@ -61,7 +61,7 @@ export default function ProductFilters({
 
     return () => clearTimeout(timeout)
 
-  }, [localSearch])
+  }, [localSearch, setSearch])
 
   /* =========================
      CLEAR FILTERS
@@ -96,7 +96,7 @@ export default function ProductFilters({
             onClick={clearFilters}
             className="text-xs flex items-center gap-1"
           >
-            <X className="h-3 w-3"/>
+            <X className="h-3 w-3" />
             Limpiar
           </Button>
         )}

@@ -31,5 +31,3 @@ landing/node_modules
 # Carpeta DOCS
 docs/
 docs/*
-to-prod/*
-/landing/to-prod

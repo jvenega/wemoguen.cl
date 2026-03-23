@@ -16,6 +16,7 @@ export type LoginPayload = {
 }
 
 export type AuthResponse = {
+  role: string
   accessToken: string
   user: User
 }

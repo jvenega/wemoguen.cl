@@ -83,11 +83,11 @@ export default function AboutSection() {
           >
             <Box
               component="img"
-              src="/about.png"
+              src="/about2.png"
               alt="Equipo WE-MOGÜEN"
               sx={{
                 width: "100%",
-                maxWidth: { md: 520 },
+                maxWidth: { md: 350 },
                 borderRadius: 4,
                 boxShadow: "0 20px 50px rgba(0,0,0,0.08)",
               }}

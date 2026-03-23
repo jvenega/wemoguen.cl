@@ -20,7 +20,6 @@ const BRAND_PURPLE_DARK = "#5A2F73";
 
 const navItems = [
   { label: "Quiénes Somos", href: "#quienes-somos" },
-  { label: "Comunidad Unida", href: "#comunidad" },
   { label: "Convenios", href: "#convenios" },
   { label: "Únete a nuestra comunidad", href: "#contacto" },
 ];

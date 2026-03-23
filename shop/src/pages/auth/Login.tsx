@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-import { Loader2, Eye, EyeOff } from "lucide-react"
+import { Loader2, Eye, EyeOff, ArrowLeft } from "lucide-react"
 
 import { useAuthStore } from "@/store/auth.store"
 import { useLogin } from "@/hooks/auth.hook"
@@ -27,7 +27,13 @@ export default function Login() {
   ========================= */
 
   useEffect(() => {
-    if (user) navigate("/")
+    if (!user) return
+
+    if (user.role === "ADMIN") {
+      navigate("/admin", { replace: true })
+    } else {
+      navigate("/", { replace: true })
+    }
   }, [user, navigate])
 
   /* =========================
@@ -39,13 +45,30 @@ export default function Login() {
     setError(null)
 
     try {
-      await mutateAsync({ email, password })
-      navigate("/")
-    } catch (err: any) {
+      const loggedUser = await mutateAsync({ email, password })
+
+      if (loggedUser.role === "ADMIN") {
+        navigate("/admin")
+      } else {
+        navigate("/")
+      }
+    } catch (err: unknown) {
       setError(
-        err?.response?.data?.message ||
-          "Credenciales inválidas. Intenta nuevamente."
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message || "Credenciales inválidas. Intenta nuevamente."
       )
+    }
+  }
+
+  /* =========================
+     VOLVER
+  ========================= */
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1)
+    } else {
+      navigate("/")
     }
   }
 
@@ -57,7 +80,6 @@ export default function Login() {
       ========================= */}
 
       <div className="hidden lg:flex items-center justify-center bg-[#4B2863] text-white p-10">
-
         <div className="max-w-md space-y-6">
 
           <h1 className="text-4xl font-semibold leading-tight">
@@ -70,7 +92,6 @@ export default function Login() {
           </p>
 
         </div>
-
       </div>
 
       {/* =========================
@@ -79,7 +100,18 @@ export default function Login() {
 
       <div className="flex items-center justify-center px-6 py-12">
 
-        <Card className="w-full max-w-md rounded-2xl shadow-sm">
+        <Card className="relative w-full max-w-md rounded-2xl shadow-sm">
+
+          {/* BOTÓN VOLVER */}
+
+          <button
+            onClick={handleBack}
+            className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-lg border bg-white hover:bg-gray-100 transition"
+            title="Volver"
+          >
+            <ArrowLeft size={18} />
+          </button>
+
           <CardContent className="p-8 space-y-6">
 
             {/* HEADER */}
@@ -142,16 +174,13 @@ export default function Login() {
 
                   <button
                     type="button"
-                    onClick={() =>
-                      setShowPassword(!showPassword)
-                    }
+                    onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-2.5 text-muted-foreground"
                   >
-                    {showPassword ? (
-                      <EyeOff size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
+                    {showPassword
+                      ? <EyeOff size={18} />
+                      : <Eye size={18} />
+                    }
                   </button>
 
                 </div>
@@ -173,10 +202,13 @@ export default function Login() {
                 className="w-full bg-[#4B2863]"
                 disabled={isPending}
               >
+
                 {isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
+
                 Ingresar
+
               </Button>
 
             </form>
@@ -199,6 +231,7 @@ export default function Login() {
             </div>
 
           </CardContent>
+
         </Card>
 
       </div>

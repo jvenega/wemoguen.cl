@@ -28,13 +28,13 @@ function RouteProgressBar() {
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
-    setProgress(30)
-
+    const t0 = setTimeout(() => setProgress(30), 0)
     const t1 = setTimeout(() => setProgress(70), 120)
     const t2 = setTimeout(() => setProgress(100), 260)
     const t3 = setTimeout(() => setProgress(0), 420)
 
     return () => {
+      clearTimeout(t0)
       clearTimeout(t1)
       clearTimeout(t2)
       clearTimeout(t3)
@@ -73,7 +73,10 @@ export default function NavbarPremium() {
   const [openUserMenu, setOpenUserMenu] = useState(false)
 
   useEffect(() => {
-    setOpenUserMenu(false)
+    if (openUserMenu) {
+      setOpenUserMenu(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname])
 
   const totalItems = useMemo(
@@ -199,7 +202,7 @@ export default function NavbarPremium() {
               </div>
             ) : (
               <Link
-                to="/login"
+                to="/iniciar-sesion"
                 className="hidden md:block text-sm border border-white/40 px-4 py-1.5 rounded-full hover:bg-white hover:text-[#4B2863] transition"
               >
                 Ingresar

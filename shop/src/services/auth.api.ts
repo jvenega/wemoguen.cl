@@ -91,6 +91,7 @@ export async function loginRequest(
     return {
       accessToken: token,
       user: sanitizeUser(user),
+      role: user.role,
     };
   }
 

@@ -12,6 +12,7 @@ import Transfer from "@/pages/shop/Transfer";
 import Confirmation from "@/pages/shop/Confirmation";
 import Orders from "@/pages/shop/Order";
 import OrderDetail from "@/pages/shop/OrderDetail";
+import Profile from "@/pages/auth/Profile";
 
 import ProtectedRoute from "@/features/auth/ProtectedRoute";
 
@@ -38,7 +39,9 @@ export default function AppRouter() {
           <Route path="checkout" element={<Checkout />} />
           <Route path="transferencia/:id" element={<Transfer />} />
           <Route path="confirmacion/:id" element={<Confirmation />} />
-
+          
+          {/* PERFIL */}
+            <Route path="profile" element={<Profile />} />
           <Route path="pedidos" element={<Orders />} />
           <Route path="pedidos/:id" element={<OrderDetail />} />
         </Route>

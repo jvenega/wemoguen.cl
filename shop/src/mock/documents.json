@@ -1,0 +1,51 @@
+{
+  "users": [
+    {
+      "email": "demo@wemoguen.cl",
+      "folders": [
+        {
+          "id": "cni",
+          "name": "Cédula de identidad",
+          "documents": [
+            {
+              "id": "cni_front",
+              "name": "Frente",
+              "type": "image",
+              "expiresAt": "2027-05-10"
+            },
+            {
+              "id": "cni_back",
+              "name": "Reverso",
+              "type": "image",
+              "expiresAt": "2027-05-10"
+            }
+          ]
+        },
+        {
+          "id": "contract",
+          "name": "Contrato de trabajo",
+          "documents": [
+            {
+              "id": "contract_signed",
+              "name": "Contrato firmado",
+              "type": "pdf",
+              "expiresAt": "2026-03-01"
+            }
+          ]
+        },
+        {
+          "id": "address",
+          "name": "Comprobante de domicilio",
+          "documents": [
+            {
+              "id": "utility_bill",
+              "name": "Cuenta de servicios",
+              "type": "pdf",
+              "expiresAt": "2025-04-15"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

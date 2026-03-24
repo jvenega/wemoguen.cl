@@ -25,7 +25,7 @@ export default function AuthProvider({
     if (isError) {
       logout()
     }
-  }, [data, isError])
+  }, [accessToken, data, isError, logout, setAuth])
 
   return <>{children}</>
 }

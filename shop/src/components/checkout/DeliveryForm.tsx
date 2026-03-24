@@ -2,6 +2,10 @@ import { useEffect } from "react"
 import { MapPin, Building2, Clock } from "lucide-react"
 import type { Delivery } from "@/types/delivery.types"
 
+import { Calendar } from "@/components/ui/calendar"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+
 type User = {
   address?: string
   commune?: string
@@ -26,6 +30,10 @@ export default function DeliveryForm({
   function updateField(field: keyof Delivery, value: string) {
     setDelivery(prev => ({ ...prev, [field]: value }))
   }
+
+  // Fecha mínima: mañana
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
 
   useEffect(() => {
 
@@ -106,49 +114,77 @@ export default function DeliveryForm({
 
       </div>
 
+      {/* ================= CALENDARIO ================= */}
       <div className="mt-8">
 
         <p className="text-sm text-gray-600 mb-3 flex items-center gap-2">
           <Clock size={16} />
-          Horario preferido de entrega
+          Selecciona fecha y horario de entrega
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid md:grid-cols-2 gap-6">
 
-          <button
-            type="button"
-            onClick={() =>
-              setDelivery(prev => ({ ...prev, preference: "AM" }))
-            }
-            className={`
-              py-3 rounded-xl border text-sm font-medium transition
-              ${delivery.preference === "AM"
-                ? "bg-primary text-white border-primary"
-                : "hover:bg-gray-50"}
-            `}
-          >
-            Mañana (AM)
-          </button>
+          {/* Calendario */}
+          <div className="border rounded-xl p-3">
 
-          <button
-            type="button"
-            onClick={() =>
-              setDelivery(prev => ({ ...prev, preference: "PM" }))
-            }
-            className={`
-              py-3 rounded-xl border text-sm font-medium transition
-              ${delivery.preference === "PM"
-                ? "bg-primary text-white border-primary"
-                : "hover:bg-gray-50"}
-            `}
-          >
-            Tarde (PM)
-          </button>
+            <Calendar
+              mode="single"
+              selected={delivery.date ? new Date(delivery.date) : undefined}
+              onSelect={(date) => {
+                if (!date) return
+                setDelivery(prev => ({
+                  ...prev,
+                  date: date.toISOString()
+                }))
+              }}
+              disabled={(date) => date < tomorrow}
+              className="rounded-md"
+            />
+
+          </div>
+
+          {/* Horario */}
+          <div className="flex flex-col gap-3">
+
+            <p className="text-sm text-gray-500">
+              Horario disponible
+            </p>
+
+            <Button
+              type="button"
+              variant={delivery.preference === "AM" ? "default" : "outline"}
+              className={cn("w-full")}
+              onClick={() =>
+                setDelivery(prev => ({ ...prev, preference: "AM" }))
+              }
+            >
+              Mañana (09:00 - 13:00)
+            </Button>
+
+            <Button
+              type="button"
+              variant={delivery.preference === "PM" ? "default" : "outline"}
+              className={cn("w-full")}
+              onClick={() =>
+                setDelivery(prev => ({ ...prev, preference: "PM" }))
+              }
+            >
+              Tarde (14:00 - 19:00)
+            </Button>
+
+            {!delivery.date && (
+              <p className="text-xs text-muted-foreground">
+                Selecciona primero una fecha
+              </p>
+            )}
+
+          </div>
 
         </div>
 
       </div>
 
+      {/* ================= OBSERVACIONES ================= */}
       <div className="mt-8">
 
         <label className="text-gray-600">

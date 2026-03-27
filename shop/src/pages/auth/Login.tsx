@@ -23,7 +23,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null)
 
   /* =========================
-     REDIRECT SI YA ESTÁ LOGUEADO
+     REDIRECT (ÚNICA FUENTE)
   ========================= */
 
   useEffect(() => {
@@ -45,13 +45,8 @@ export default function Login() {
     setError(null)
 
     try {
-      const loggedUser = await mutateAsync({ email, password })
-
-      if (loggedUser.role === "ADMIN") {
-        navigate("/admin")
-      } else {
-        navigate("/")
-      }
+      await mutateAsync({ email, password })
+      // ❌ NO navegar aquí (evita conflicto)
     } catch (err: unknown) {
       setError(
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -75,39 +70,29 @@ export default function Login() {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-gray-50">
 
-      {/* =========================
-         LADO IZQUIERDO / BRANDING
-      ========================= */}
-
+      {/* LADO IZQUIERDO */}
       <div className="hidden lg:flex items-center justify-center bg-[#4B2863] text-white p-10">
         <div className="max-w-md space-y-6">
-
           <h1 className="text-4xl font-semibold leading-tight">
             Bienvenido nuevamente
           </h1>
-
           <p className="text-white/80">
             Accede a tu cuenta para gestionar tus pedidos,
             documentos y beneficios dentro de la comunidad.
           </p>
-
         </div>
       </div>
 
-      {/* =========================
-         FORMULARIO
-      ========================= */}
-
+      {/* FORM */}
       <div className="flex items-center justify-center px-6 py-12">
 
         <Card className="relative w-full max-w-md rounded-2xl shadow-sm">
 
-          {/* BOTÓN VOLVER */}
-
+          {/* VOLVER */}
           <button
+            title="back"
             onClick={handleBack}
             className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-lg border bg-white hover:bg-gray-100 transition"
-            title="Volver"
           >
             <ArrowLeft size={18} />
           </button>
@@ -115,31 +100,20 @@ export default function Login() {
           <CardContent className="p-8 space-y-6">
 
             {/* HEADER */}
-
             <div className="text-center space-y-2">
-
               <h2 className="text-2xl font-semibold">
                 Iniciar sesión
               </h2>
-
               <p className="text-sm text-muted-foreground">
                 Ingresa tus credenciales para continuar
               </p>
-
             </div>
 
             {/* FORM */}
-
             <form onSubmit={handleSubmit} className="space-y-4">
 
-              {/* EMAIL */}
-
               <div className="space-y-2">
-
-                <Label htmlFor="email">
-                  Correo electrónico
-                </Label>
-
+                <Label htmlFor="email">Correo electrónico</Label>
                 <Input
                   id="email"
                   type="email"
@@ -149,19 +123,12 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
-
               </div>
 
-              {/* PASSWORD */}
-
               <div className="space-y-2">
-
-                <Label htmlFor="password">
-                  Contraseña
-                </Label>
+                <Label htmlFor="password">Contraseña</Label>
 
                 <div className="relative">
-
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -177,17 +144,10 @@ export default function Login() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-2.5 text-muted-foreground"
                   >
-                    {showPassword
-                      ? <EyeOff size={18} />
-                      : <Eye size={18} />
-                    }
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
-
                 </div>
-
               </div>
-
-              {/* ERROR */}
 
               {error && (
                 <div className="text-sm bg-red-50 text-red-600 p-3 rounded-md border">
@@ -195,39 +155,28 @@ export default function Login() {
                 </div>
               )}
 
-              {/* SUBMIT */}
-
               <Button
                 type="submit"
                 className="w-full bg-[#4B2863]"
                 disabled={isPending}
               >
-
                 {isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-
                 Ingresar
-
               </Button>
 
             </form>
 
             {/* FOOTER */}
-
             <div className="text-center text-sm text-muted-foreground space-y-1">
-
-              <p>
-                ¿No tienes acceso aún?
-              </p>
-
+              <p>¿No tienes acceso aún?</p>
               <button
                 onClick={() => navigate("/solicitud-acceso")}
                 className="underline font-medium text-[#4B2863]"
               >
                 Solicitar acceso
               </button>
-
             </div>
 
           </CardContent>

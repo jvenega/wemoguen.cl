@@ -1,22 +1,22 @@
-export type User = {
-  id: string
-  fullName: string
-  email: string
-  rut: number
-  role: "PATIENT" | "ADMIN"
-  address: string
-  commune: string
-  city: string
-  
+export type Role = "ADMIN" | "PATIENT";
+
+export interface User {
+  id: string;
+  fullName: string;
+  email: string;
+  role: Role;
+  rut: number;
+  address: string;
+  commune: string;
+  city: string;
 }
 
-export type LoginPayload = {
-  email: string
-  password: string
+export interface LoginPayload {
+  email: string;
+  password: string;
 }
 
-export type AuthResponse = {
-  role: string
-  accessToken: string
-  user: User
+export interface AuthResponse {
+  accessToken: string;
+  user: User;
 }

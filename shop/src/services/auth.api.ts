@@ -46,7 +46,7 @@ function generateMockToken(userId: string) {
 }
 
 function sanitizeUser(user: MockUser): User {
-  const userData: User = {
+  return {
     id: user.id,
     fullName: user.fullName,
     email: user.email,
@@ -56,8 +56,6 @@ function sanitizeUser(user: MockUser): User {
     commune: user.commune,
     city: user.city,
   };
-
-  return userData;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -88,10 +86,10 @@ export async function loginRequest(
 
     const token = generateMockToken(user.id);
 
+    // ✅ CORRECTO: sin duplicar role
     return {
       accessToken: token,
       user: sanitizeUser(user),
-      role: user.role,
     };
   }
 
@@ -114,10 +112,12 @@ export async function getMe(): Promise<User> {
     }
 
     const parsed = JSON.parse(stored);
-    const user = parsed?.state?.user;
 
-    if (!user) {
-      throw new Error("No user");
+    // ✅ acceso seguro
+    const user: User | undefined = parsed?.state?.user;
+
+    if (!user || !user.role) {
+      throw new Error("Invalid user data");
     }
 
     return user;

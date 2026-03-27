@@ -3,15 +3,13 @@ import SplashScreen from "../components/ui/SplashScreen"
 import AppRouter from "@/app/router"
 
 export default function RootLoader() {
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => {
+    const alreadyLoaded = sessionStorage.getItem("app_loaded")
+    return !alreadyLoaded
+  })
 
   useEffect(() => {
-    const alreadyLoaded = sessionStorage.getItem("app_loaded")
-
-    if (alreadyLoaded) {
-      setLoading(false)
-      return
-    }
+    if (!loading) return
 
     const timer = setTimeout(() => {
       setLoading(false)
@@ -19,7 +17,7 @@ export default function RootLoader() {
     }, 1800)
 
     return () => clearTimeout(timer)
-  }, [])
+  }, [loading])
 
   if (loading) return <SplashScreen />
 

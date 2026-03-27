@@ -51,9 +51,9 @@ export default function AppRouter() {
       <Route element={<ProtectedRoute role="ADMIN" />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
-          <Route path="productos" element={<AdminProducts />} />
-          <Route path="pedidos" element={<AdminOrders />} />
-          <Route path="usuarios" element={<AdminUsers />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="users" element={<AdminUsers />} />
         </Route>
       </Route>
     </Routes>

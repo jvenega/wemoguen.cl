@@ -6,7 +6,7 @@ export default function AdminHeader() {
       <div className="flex items-center justify-between">
 
         <h1 className="text-lg font-semibold">
-          Panel de Administración
+          Panel de Administracións
         </h1>
 
       </div>

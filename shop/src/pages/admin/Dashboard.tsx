@@ -162,8 +162,10 @@ export default function Dashboard() {
         </div>
 
         <div className="flex gap-2">
-          <Button>Nuevo producto</Button>
-          <Button variant="outline">Ver pedidos</Button>
+          <Button onClick={() => window.location.href = "/admin/products"}>Nuevo producto</Button>
+          <Button variant="outline" onClick={() => window.location.href = "/admin/orders"}>
+            Ver pedidos
+          </Button>
         </div>
       </div>
 

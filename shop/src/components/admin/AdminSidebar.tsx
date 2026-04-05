@@ -29,14 +29,15 @@ const navItems = [
 // =========================
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+  const navigate = useNavigate()
 
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
-  const navigate = useNavigate()
 
   const handleLogout = () => {
     logout()
-    navigate("/login")
+    
+    navigate("/iniciar-sesion", { replace: true })
   }
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -109,6 +110,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         )}
 
         <button
+          type="button"
           onClick={handleLogout}
           className="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-lg text-red-600 hover:bg-red-50 transition"
         >
@@ -126,7 +128,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 // =========================
 
 export default function AdminSidebar() {
-
   return (
     <>
       {/* DESKTOP */}

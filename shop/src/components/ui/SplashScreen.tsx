@@ -7,7 +7,7 @@ export default function SplashScreen() {
 
       {/* LOGO */}
       <motion.img
-        src="/logo2.png"
+        src="/assets/logo2.png"
         alt="logo"
         className="w-28 mb-6"
         initial={{ opacity: 0, scale: 0.9 }}

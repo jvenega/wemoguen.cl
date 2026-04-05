@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import type { User } from "@/types/auth.types"
+import { api } from "@/lib/api"
 
 // =========================
 // TYPES
@@ -9,6 +10,7 @@ import type { User } from "@/types/auth.types"
 type AuthState = {
   user: User | null
   accessToken: string | null
+  isLoading: boolean
 
   // actions
   setAuth: (user: User, token: string) => void
@@ -28,65 +30,82 @@ export const useAuthStore = create<AuthState>()(
 
       user: null,
       accessToken: null,
+      isLoading: true,
 
-      // =========================
-      // SET AUTH
-      // =========================
+      /* =========================
+         SET AUTH
+      ========================= */
       setAuth: (user, token) => {
         set({
           user,
           accessToken: token,
+          isLoading: false,
         })
+
+        // 🔐 set global header
+        api.defaults.headers.common.Authorization = `Bearer ${token}`
       },
 
-      // =========================
-      // LOGOUT (ROBUSTO)
-      // =========================
+      /* =========================
+         LOGOUT (ROBUSTO)
+      ========================= */
       logout: () => {
+        const state = get()
 
-        // limpiar estado en memoria
+        // evitar ejecuciones innecesarias
+        if (!state.user && !state.accessToken) return
+
+        // 1. limpiar persistencia primero
+        useAuthStore.persist.clearStorage()
+
+        // 2. limpiar headers globales
+        delete api.defaults.headers.common.Authorization
+
+        // 3. resetear estado completo
         set({
           user: null,
           accessToken: null,
+          isLoading: false,
         })
-
-        // limpiar persistencia correctamente
-        useAuthStore.persist.clearStorage()
       },
 
-      // =========================
-      // HELPERS
-      // =========================
+      /* =========================
+         HELPERS
+      ========================= */
       isAuthenticated: () => {
-        const { accessToken } = get()
-        return !!accessToken
+        const { accessToken, user } = get()
+        return !!accessToken && !!user
       },
 
     }),
     {
       name: "auth-storage",
-
       storage: createJSONStorage(() => localStorage),
 
-      // solo persistimos lo necesario
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
       }),
 
-      // =========================
-      // REHYDRATION CONTROL
-      // =========================
+      /* =========================
+         REHYDRATION CONTROL
+      ========================= */
       onRehydrateStorage: () => (state) => {
-
         if (!state) return
 
-        // 🔐 validación básica
-        if (!state.accessToken) {
+        // 🔴 consistencia fuerte
+        if (!state.accessToken || !state.user) {
           state.user = null
+          state.accessToken = null
         }
 
-        // 👉 aquí puedes validar expiración JWT en el futuro
+        // 🔐 restaurar header si existe token
+        if (state.accessToken) {
+          api.defaults.headers.common.Authorization = `Bearer ${state.accessToken}`
+        }
+
+        // ✅ fin de carga
+        state.isLoading = false
       },
     }
   )

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,13 +8,11 @@ import { Label } from "@/components/ui/label"
 
 import { Loader2, Eye, EyeOff, ArrowLeft } from "lucide-react"
 
-import { useAuthStore } from "@/store/auth.store"
 import { useLogin } from "@/hooks/auth.hook"
 
 export default function Login() {
   const navigate = useNavigate()
 
-  const user = useAuthStore((s) => s.user)
   const { mutateAsync, isPending } = useLogin()
 
   const [email, setEmail] = useState("")
@@ -23,30 +21,15 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null)
 
   /* =========================
-     REDIRECT (ÚNICA FUENTE)
-  ========================= */
-
-  useEffect(() => {
-    if (!user) return
-
-    if (user.role === "ADMIN") {
-      navigate("/admin", { replace: true })
-    } else {
-      navigate("/", { replace: true })
-    }
-  }, [user, navigate])
-
-  /* =========================
      SUBMIT
   ========================= */
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
     try {
       await mutateAsync({ email, password })
-      // ❌ NO navegar aquí (evita conflicto)
+      // ✅ NO navigate → lo maneja PublicOnlyRoute
     } catch (err: unknown) {
       setError(
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -58,7 +41,6 @@ export default function Login() {
   /* =========================
      VOLVER
   ========================= */
-
   const handleBack = () => {
     if (window.history.length > 1) {
       navigate(-1)
@@ -70,7 +52,7 @@ export default function Login() {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-gray-50">
 
-      {/* LADO IZQUIERDO */}
+      {/* IZQUIERDA */}
       <div className="hidden lg:flex items-center justify-center bg-[#4B2863] text-white p-10">
         <div className="max-w-md space-y-6">
           <h1 className="text-4xl font-semibold leading-tight">
@@ -88,9 +70,10 @@ export default function Login() {
 
         <Card className="relative w-full max-w-md rounded-2xl shadow-sm">
 
-          {/* VOLVER */}
+          {/* BACK */}
           <button
-            title="back"
+            title="Volver"
+            type="button"
             onClick={handleBack}
             className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-lg border bg-white hover:bg-gray-100 transition"
           >
@@ -141,7 +124,7 @@ export default function Login() {
 
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => setShowPassword((v) => !v)}
                     className="absolute right-3 top-2.5 text-muted-foreground"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -172,6 +155,7 @@ export default function Login() {
             <div className="text-center text-sm text-muted-foreground space-y-1">
               <p>¿No tienes acceso aún?</p>
               <button
+                type="button"
                 onClick={() => navigate("/solicitud-acceso")}
                 className="underline font-medium text-[#4B2863]"
               >

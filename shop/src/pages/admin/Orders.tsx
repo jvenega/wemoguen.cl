@@ -4,70 +4,44 @@ import {
   Search,
   Download,
   X,
-  PackageCheck,
 } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
   Card,
-  CardContent,
-  CardHeader,
-  CardTitle
+  CardContent
 } from "@/components/ui/card"
 
 // =========================
 // TYPES
 // =========================
+import { type OrderStatus, type Order,  mockOrders } from "@/mock/admin/orders"
 
-type OrderStatus = "paid" | "pending" | "shipped"
 
-type OrderItem = {
-  id: string
-  name: string
-  price: number
-  quantity: number
-  image: string
-}
+// =========================
+// CONFIG
+// =========================
 
-type Order = {
-  id: string
-  customerName: string
-  total: number
-  status: OrderStatus
-  createdAt: string
-  items: OrderItem[]
+const ORDER_STEPS = [
+  { key: "created", label: "Creado" },
+  { key: "paid", label: "Pagado" },
+  { key: "shipped", label: "Enviado" },
+  { key: "delivered", label: "Entregado" },
+] as const
+
+const STATUS_META = {
+  created: { label: "Creado", color: "bg-gray-100 text-gray-700" },
+  paid: { label: "Pagado", color: "bg-green-100 text-green-700" },
+  shipped: { label: "Enviado", color: "bg-blue-100 text-blue-700" },
+  delivered: { label: "Entregado", color: "bg-purple-100 text-purple-700" },
 }
 
 // =========================
 // MOCK
 // =========================
 
-const mockOrders: Order[] = [
-  {
-    id: "ord_001",
-    customerName: "Juan Pérez",
-    total: 25000,
-    status: "paid",
-    createdAt: "2026-03-20",
-    items: [
-      {
-        id: "p1",
-        name: "Aceite CBD 15ml",
-        price: 15000,
-        quantity: 1,
-        image: "https://picsum.photos/seed/p1/100"
-      },
-      {
-        id: "p2",
-        name: "Crema CBD",
-        price: 10000,
-        quantity: 1,
-        image: "https://picsum.photos/seed/p2/100"
-      }
-    ]
-  }
-]
+
 
 // =========================
 // HELPERS
@@ -79,19 +53,101 @@ const formatCLP = (value: number) =>
     currency: "CLP",
   }).format(value)
 
-function getStatusConfig(status: OrderStatus) {
-  switch (status) {
-    case "paid":
-      return { label: "Pagado", color: "text-green-600" }
-    case "pending":
-      return { label: "Pendiente", color: "text-yellow-600" }
-    case "shipped":
-      return { label: "Enviado", color: "text-blue-600" }
+// =========================
+// COMPONENTS
+// =========================
+
+function StatusBadge({ status }: { status: OrderStatus }) {
+  const meta = STATUS_META[status]
+
+  return (
+    <span className={`px-2 py-1 rounded-md text-xs font-medium ${meta.color}`}>
+      {meta.label}
+    </span>
+  )
+}
+
+function OrderProgress({ status }: { status: OrderStatus }) {
+  const currentIndex = ORDER_STEPS.findIndex(s => s.key === status)
+
+  return (
+    <div className="space-y-3">
+
+      <div className="flex items-center gap-2">
+        {ORDER_STEPS.map((step, i) => {
+          const active = i <= currentIndex
+
+          return (
+            <div key={step.key} className="flex items-center flex-1">
+              <div
+                className={`h-2 flex-1 rounded-full ${
+                  active ? "bg-primary" : "bg-muted"
+                }`}
+              />
+              {i !== ORDER_STEPS.length - 1 && <div className="w-2" />}
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="flex justify-between text-xs text-muted-foreground">
+        {ORDER_STEPS.map((step, i) => {
+          const active = i <= currentIndex
+
+          return (
+            <span
+              key={step.key}
+              className={active ? "text-foreground font-medium" : ""}
+            >
+              {step.label}
+            </span>
+          )
+        })}
+      </div>
+
+    </div>
+  )
+}
+
+function OrdersSummary({ orders }: { orders: Order[] }) {
+  const counts = {
+    created: orders.filter(o => o.status === "created").length,
+    paid: orders.filter(o => o.status === "paid").length,
+    shipped: orders.filter(o => o.status === "shipped").length,
   }
+
+  return (
+    <Card>
+      <CardContent className="p-4 space-y-3">
+
+        <p className="text-sm font-medium">Estado pedidos</p>
+
+        <div className="space-y-2 text-sm">
+
+          <div className="flex justify-between">
+            <span>Por procesar</span>
+            <span className="font-medium">{counts.created}</span>
+          </div>
+
+          <div className="flex justify-between">
+            <span>Pagados</span>
+            <span className="font-medium">{counts.paid}</span>
+          </div>
+
+          <div className="flex justify-between">
+            <span>Enviados</span>
+            <span className="font-medium">{counts.shipped}</span>
+          </div>
+
+        </div>
+
+      </CardContent>
+    </Card>
+  )
 }
 
 // =========================
-// DRAWER RESPONSIVE
+// DRAWER
 // =========================
 
 function OrderDrawer({
@@ -103,111 +159,58 @@ function OrderDrawer({
 }) {
   if (!order) return null
 
-  const status = getStatusConfig(order.status)
-
   return (
     <div className="fixed inset-0 z-50 flex">
 
-      {/* overlay */}
       <div className="flex-1 bg-black/40" onClick={onClose} />
 
-      {/* drawer */}
-      <div className="
-        w-full md:w-105
-        bg-white h-full shadow-xl
-        flex flex-col
-        fixed right-0 top-0
-        md:relative
-      ">
+      <div className="w-full md:w-105 bg-white h-full shadow-xl flex flex-col">
 
-        {/* HEADER */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="font-semibold">
-            Pedido {order.id}
-          </h2>
+        <div className="p-5 border-b flex justify-between items-center">
+          <div>
+            <p className="text-sm text-muted-foreground">Pedido</p>
+            <h2 className="font-semibold">{order.id}</h2>
+          </div>
 
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="w-4 h-4" />
           </Button>
         </div>
 
-        {/* CONTENT */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        <div className="flex-1 overflow-y-auto p-5 space-y-6">
 
-          {/* INFO */}
-          <div className="space-y-2 text-sm">
-            <div>
-              <p className="text-muted-foreground">Cliente</p>
-              <p className="font-medium">{order.customerName}</p>
-            </div>
-
-            <div>
-              <p className="text-muted-foreground">Estado</p>
-              <p className={status.color}>{status.label}</p>
-            </div>
+          <div className="space-y-4">
+            <StatusBadge status={order.status} />
+            <OrderProgress status={order.status} />
           </div>
 
-          {/* ITEMS */}
+          <div>
+            <p className="text-sm text-muted-foreground">Cliente</p>
+            <p className="font-medium">{order.customerName}</p>
+          </div>
+
           <div className="space-y-3">
-            <p className="font-medium text-sm">Productos</p>
-
             {order.items.map(item => (
-              <div
-                key={item.id}
-                className="flex gap-3 items-center border rounded-lg p-2"
-              >
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-12 h-12 rounded object-cover"
-                />
-
+              <div key={item.id} className="flex gap-3 items-center border rounded-lg p-3">
+                <img src={item.image} alt={item.name} className="w-12 h-12 rounded object-cover" />
                 <div className="flex-1 text-sm">
                   <p className="font-medium">{item.name}</p>
                   <p className="text-muted-foreground">
-                    {item.quantity} x {formatCLP(item.price)}
+                    {item.quantity} × {formatCLP(item.price)}
                   </p>
-                </div>
-
-                <div className="text-sm font-semibold">
-                  {formatCLP(item.price * item.quantity)}
                 </div>
               </div>
             ))}
           </div>
 
-          {/* TOTAL */}
-          <div className="border-t pt-4 space-y-2 text-sm">
-
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>{formatCLP(order.total)}</span>
-            </div>
-
-            <div className="flex justify-between font-semibold text-base">
-              <span>Total</span>
-              <span>{formatCLP(order.total)}</span>
-            </div>
-
-          </div>
-
-          {/* TIMELINE */}
-          <div className="border-t pt-4 space-y-2 text-sm">
-            <p className="font-medium">Estado del pedido</p>
-
-            <div className="flex items-center gap-2">
-              <PackageCheck className="w-4 h-4 text-green-600" />
-              Pedido creado
-            </div>
-
-            <div className="opacity-60">Pago confirmado</div>
-            <div className="opacity-60">Enviado</div>
+          <div className="border-t pt-4 flex justify-between font-semibold">
+            <span>Total</span>
+            <span>{formatCLP(order.total)}</span>
           </div>
 
         </div>
 
       </div>
-
     </div>
   )
 }
@@ -217,7 +220,6 @@ function OrderDrawer({
 // =========================
 
 export default function Orders() {
-
   const [search, setSearch] = useState("")
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
 
@@ -228,73 +230,75 @@ export default function Orders() {
   }, [search])
 
   return (
-    <div className="space-y-6">
+    <div className="grid lg:grid-cols-[1fr_260px] gap-6">
 
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between gap-4">
+      {/* MAIN */}
+      <div className="space-y-6">
 
-        <div>
-          <h1 className="text-2xl font-semibold">Pedidos</h1>
-          <p className="text-sm text-muted-foreground">
-            Gestión de pedidos
-          </p>
-        </div>
+        {/* HEADER */}
+        <div className="flex justify-between gap-4">
 
-        <div className="flex gap-2">
-
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 w-4 h-4" />
-            <Input
-              className="pl-8"
-              placeholder="Buscar..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+          <div>
+            <h1 className="text-2xl font-semibold">Pedidos</h1>
+            <p className="text-sm text-muted-foreground">
+              Seguimiento de órdenes
+            </p>
           </div>
 
-          <Button variant="outline" className="gap-2">
-            <Download className="w-4 h-4" />
-            Exportar
-          </Button>
+          <div className="flex gap-2">
 
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+              <Input
+                className="pl-9 w-60"
+                placeholder="Buscar cliente"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
+            <Button variant="outline" className="gap-2">
+              <Download className="w-4 h-4" />
+              Exportar
+            </Button>
+
+          </div>
         </div>
 
-      </div>
+        {/* TABLE */}
+        <Card>
+          <CardContent className="p-0">
 
-      {/* TABLE */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Pedidos</CardTitle>
-        </CardHeader>
+            <table className="w-full text-sm">
 
-        <CardContent className="p-0 overflow-x-auto">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="p-4 text-left">Pedido</th>
+                  <th className="p-4 text-left">Cliente</th>
+                  <th className="p-4 text-left">Total</th>
+                  <th className="p-4 text-left">Estado</th>
+                  <th className="p-4 text-right"></th>
+                </tr>
+              </thead>
 
-          <table className="w-full text-sm">
-
-            <thead className="bg-muted">
-              <tr>
-                <th className="p-4 text-left">ID</th>
-                <th className="p-4 text-left">Cliente</th>
-                <th className="p-4 text-left">Total</th>
-                <th className="p-4 text-left">Estado</th>
-                <th className="p-4 text-right"></th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {filtered.map(order => {
-                const status = getStatusConfig(order.status)
-
-                return (
+              <tbody>
+                {filtered.map(order => (
                   <tr key={order.id} className="border-t hover:bg-muted/40">
 
                     <td className="p-4">{order.id}</td>
-                    <td className="p-4">{order.customerName}</td>
+
+                    <td className="p-4 font-medium">
+                      {order.customerName}
+                    </td>
+
                     <td className="p-4 font-semibold">
                       {formatCLP(order.total)}
                     </td>
-                    <td className={`p-4 ${status.color}`}>
-                      {status.label}
+
+                    <td className="p-4">
+                      <div className="space-y-2">
+                        <OrderProgress status={order.status} />
+                      </div>
                     </td>
 
                     <td className="p-4 text-right">
@@ -308,14 +312,20 @@ export default function Orders() {
                     </td>
 
                   </tr>
-                )
-              })}
-            </tbody>
+                ))}
+              </tbody>
 
-          </table>
+            </table>
 
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+      </div>
+
+      {/* SIDEBAR */}
+      <div className="space-y-4">
+        <OrdersSummary orders={mockOrders} />
+      </div>
 
       {/* DRAWER */}
       <OrderDrawer

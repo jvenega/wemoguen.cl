@@ -1,9 +1,8 @@
 import { Outlet, NavLink, useLocation } from "react-router-dom"
 import { useState, useMemo } from "react"
-
+import { Notifications } from "./Notifications"
 import {
   Menu,
-  Bell,
   User,
   LayoutDashboard,
   ShoppingCart,
@@ -56,7 +55,7 @@ function Breadcrumbs() {
   }, [location.pathname])
 
   return (
-    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+    <div className="flex items-center gap-1 text-lg text-muted-foreground text">
 
       {crumbs.map((crumb, i) => (
         <div key={crumb.path} className="flex items-center gap-1">
@@ -234,9 +233,6 @@ export default function AdminLayout() {
             </Button>
 
             <div className="flex flex-col">
-              <h1 className="text-sm sm:text-lg font-semibold">
-                Administración
-              </h1>
 
               {/* 🔥 Breadcrumbs */}
               <Breadcrumbs />
@@ -247,10 +243,7 @@ export default function AdminLayout() {
           {/* RIGHT */}
           <div className="flex items-center gap-2">
 
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
-            </Button>
+            <Notifications />
 
             <Button variant="ghost" size="icon">
               <User className="w-5 h-5" />

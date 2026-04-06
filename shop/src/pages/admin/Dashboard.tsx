@@ -12,135 +12,230 @@ import {
   ShoppingCart,
   Users,
   TrendingUp,
-  AlertTriangle
+  Package,
+  CreditCard
 } from "lucide-react"
 
+import { useNavigate } from "react-router-dom"
+
 // =========================
-// MOCK DATA
+// TYPES
+// =========================
+
+type OrderStatus = "Pagado" | "Pendiente" | "Enviado" | "Cancelado"
+
+type Order = {
+  id: string
+  customer: string
+  total: number
+  status: OrderStatus
+  date: string
+}
+
+// =========================
+// MOCK DATA (REEMPLAZAR)
 // =========================
 
 const stats = {
-  sales: 124500,
+  revenue: 124500,
   orders: 86,
-  users: 1320
+  customers: 1320,
+  conversion: 3.2,
+  avgPurchase: 14500,
+  abandonedCarts: 12
 }
 
-const orders = [
-  { id: "#001", customer: "Juan Pérez", total: 25000, status: "Pagado" },
-  { id: "#002", customer: "María López", total: 18000, status: "Pendiente" },
-  { id: "#003", customer: "Carlos Díaz", total: 32000, status: "Enviado" }
-]
-
-const products = [
-  { name: "Producto A", sales: 120, revenue: 60000 },
-  { name: "Producto B", sales: 80, revenue: 40000 }
+const orders: Order[] = [
+  { id: "#001", customer: "Juan Pérez", total: 25000, status: "Pagado", date: "05-04-2026" },
+  { id: "#002", customer: "María López", total: 18000, status: "Pendiente", date: "05-04-2026" },
+  { id: "#003", customer: "Carlos Díaz", total: 32000, status: "Enviado", date: "05-04-2026" }
 ]
 
 // =========================
-// COMPONENTS
+// HELPERS
 // =========================
 
-type StatCardProps = {
-  title: string
-  value: string | number
-  change: string
+function formatCurrency(value: number) {
+  return `$${value.toLocaleString("es-CL")}`
+}
+
+function getStatusColor(status: OrderStatus) {
+  switch (status) {
+    case "Pagado":
+      return "bg-green-100 text-green-700 border border-green-200"
+    case "Pendiente":
+      return "bg-yellow-100 text-yellow-700 border border-yellow-200"
+    case "Enviado":
+      return "bg-blue-100 text-blue-700 border border-blue-200"
+    case "Cancelado":
+      return "bg-red-100 text-red-700 border border-red-200"
+  }
+}
+
+// =========================
+// KPI COMPONENT
+// =========================
+
+function KPI({
+  label,
+  value,
+  description,
+  icon,
+  highlight
+}: {
+  label: string
+  value: string
+  description?: string
   icon: React.ReactNode
-}
-
-function StatCard({ title, value, change, icon }: StatCardProps) {
+  highlight?: boolean
+}) {
   return (
-    <Card className="rounded-2xl shadow-sm hover:shadow-md transition">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm text-muted-foreground">
-          {title}
-        </CardTitle>
-        <div className="p-2 rounded-xl bg-muted">{icon}</div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-3xl font-semibold">{value}</div>
-        <div className="text-sm text-green-600 mt-1 flex items-center gap-1">
-          <TrendingUp className="w-4 h-4" /> {change}
-        </div>
-      </CardContent>
-    </Card>
+    <div
+      className={`flex items-center gap-3 p-3 border rounded-lg transition ${
+        highlight ? "bg-green-50 border-green-200" : "bg-white"
+      }`}
+    >
+      <div className="p-2 rounded-lg bg-muted">
+        {icon}
+      </div>
+
+      <div className="flex flex-col">
+        <span className="text-xs text-muted-foreground">
+          {label}
+        </span>
+
+        <span className="text-base font-semibold">
+          {value}
+        </span>
+
+        {description && (
+          <span className="text-[10px] text-muted-foreground">
+            {description}
+          </span>
+        )}
+      </div>
+    </div>
   )
 }
 
+// =========================
+// FILTER BAR
+// =========================
+
+function FilterBar() {
+  return (
+    <div className="flex flex-wrap gap-2 items-center">
+      <Button size="sm" variant="outline">Hoy</Button>
+      <Button size="sm" variant="outline">Últimos 7 días</Button>
+      <Button size="sm" variant="outline">Últimos 30 días</Button>
+
+      <div className="ml-auto">
+        <Button size="sm">Exportar datos</Button>
+      </div>
+    </div>
+  )
+}
+
+// =========================
+// ORDERS TABLE
+// =========================
+
 function OrdersTable() {
   return (
-    <Card className="rounded-2xl">
-      <CardHeader>
-        <CardTitle>Últimos pedidos</CardTitle>
+    <Card>
+      <CardHeader className="py-3">
+        <CardTitle className="text-sm">
+          Pedidos recientes
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+
+      <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-left text-muted-foreground">
+            <thead className="bg-muted/50 text-xs">
               <tr>
-                <th>ID</th>
+                <th className="p-2 text-left">ID</th>
                 <th>Cliente</th>
                 <th>Total</th>
                 <th>Estado</th>
+                <th>Fecha</th>
               </tr>
             </thead>
+
             <tbody>
               {orders.map((o) => (
-                <tr key={o.id} className="border-t">
-                  <td className="py-2">{o.id}</td>
+                <tr
+                  key={o.id}
+                  className="border-t hover:bg-muted/40 transition cursor-pointer"
+                >
+                  <td className="p-2 font-medium">{o.id}</td>
                   <td>{o.customer}</td>
-                  <td>${o.total.toLocaleString("es-CL")}</td>
+                  <td>{formatCurrency(o.total)}</td>
+
                   <td>
-                    <span className="px-2 py-1 rounded-full text-xs bg-muted">
+                    <span
+                      className={`px-2 py-1 rounded text-xs ${getStatusColor(
+                        o.status
+                      )}`}
+                    >
                       {o.status}
                     </span>
                   </td>
+
+                  <td>{o.date}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+
+          {orders.length === 0 && (
+            <div className="text-center py-6 text-muted-foreground">
+              No hay pedidos recientes
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
   )
 }
 
-function TopProducts() {
-  return (
-    <Card className="rounded-2xl">
-      <CardHeader>
-        <CardTitle>Top productos</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {products.map((p) => (
-          <div key={p.name} className="flex justify-between">
-            <div>
-              <div className="font-medium">{p.name}</div>
-              <div className="text-xs text-muted-foreground">
-                {p.sales} ventas
-              </div>
-            </div>
-            <div className="font-semibold">
-              ${p.revenue.toLocaleString("es-CL")}
-            </div>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
-  )
-}
+// =========================
+// SIDE PANEL
+// =========================
 
-function Alerts() {
+function SidePanel() {
   return (
-    <Card className="rounded-2xl border-red-200">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-red-600">
-          <AlertTriangle className="w-4 h-4" /> Alertas
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="text-sm">
-        3 productos con bajo stock
-      </CardContent>
-    </Card>
+    <div className="space-y-4">
+
+      
+
+      {/* SALUD */}
+      <Card>
+        <CardHeader className="py-3">
+          <CardTitle className="text-sm">
+            Salud de la tienda
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="text-xs space-y-2">
+          <div className="flex justify-between">
+            <span>Tasa de compra</span>
+            <span>{stats.conversion}%</span>
+          </div>
+
+          <div className="flex justify-between">
+            <span>Carritos abandonados</span>
+            <span className="text-red-600">{stats.abandonedCarts}%</span>
+          </div>
+
+          <div className="flex justify-between">
+            <span>Compra promedio</span>
+            <span>{formatCurrency(stats.avgPurchase)}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+    </div>
   )
 }
 
@@ -149,63 +244,96 @@ function Alerts() {
 // =========================
 
 export default function Dashboard() {
+  const navigate = useNavigate()
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
 
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
-            Resumen general
+          <h1 className="text-lg font-semibold">
+            Resumen de la tienda
+          </h1>
+
+          <p className="text-xs text-muted-foreground">
+            Métricas clave y estado actual del negocio
           </p>
         </div>
 
-        <div className="flex gap-2">
-          <Button onClick={() => window.location.href = "/admin/products"}>Nuevo producto</Button>
-          <Button variant="outline" onClick={() => window.location.href = "/admin/orders"}>
-            Ver pedidos
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button onClick={() => navigate("/admin/products")}>
+            Crear producto
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => navigate("/admin/orders")}
+          >
+            Ir a pedidos
           </Button>
         </div>
       </div>
 
-      {/* STATS */}
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard
-          title="Ventas"
-          value={`$${stats.sales.toLocaleString("es-CL")}`}
-          change="+12%"
-          icon={<DollarSign className="w-5 h-5" />}
+      {/* KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+
+        <KPI
+          label="Ingresos"
+          value={formatCurrency(stats.revenue)}
+          description="Ventas totales"
+          icon={<DollarSign className="w-4 h-4" />}
+          highlight
         />
 
-        <StatCard
-          title="Pedidos"
-          value={stats.orders}
-          change="+8 hoy"
-          icon={<ShoppingCart className="w-5 h-5" />}
+        <KPI
+          label="Pedidos"
+          value={String(stats.orders)}
+          description="Órdenes realizadas"
+          icon={<ShoppingCart className="w-4 h-4" />}
         />
 
-        <StatCard
-          title="Usuarios"
-          value={stats.users}
-          change="+25 nuevos"
-          icon={<Users className="w-5 h-5" />}
+        <KPI
+          label="Clientes"
+          value={String(stats.customers)}
+          description="Usuarios compradores"
+          icon={<Users className="w-4 h-4" />}
         />
+
+        <KPI
+          label="Tasa de compra"
+          value={`${stats.conversion}%`}
+          description="Conversión del sitio"
+          icon={<TrendingUp className="w-4 h-4" />}
+        />
+
+        <KPI
+          label="Compra promedio"
+          value={formatCurrency(stats.avgPurchase)}
+          description="Promedio por pedido"
+          icon={<CreditCard className="w-4 h-4" />}
+        />
+
+        <KPI
+          label="Carritos abandonados"
+          value={`${stats.abandonedCarts}%`}
+          description="Usuarios que no compraron"
+          icon={<Package className="w-4 h-4" />}
+        />
+
       </div>
 
-      {/* MAIN GRID */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      {/* FILTERS */}
+      <FilterBar />
 
-        {/* LEFT */}
-        <div className="lg:col-span-2 space-y-6">
+      {/* MAIN GRID */}
+      <div className="grid lg:grid-cols-4 gap-4">
+
+        <div className="lg:col-span-3">
           <OrdersTable />
         </div>
 
-        {/* RIGHT */}
-        <div className="space-y-6">
-          <TopProducts />
-          <Alerts />
-        </div>
+        <SidePanel />
 
       </div>
 

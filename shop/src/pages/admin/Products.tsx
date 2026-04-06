@@ -1,12 +1,19 @@
 import { useState, useMemo, useRef } from "react"
+import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type SortingState,
+} from "@tanstack/react-table"
+
 import { useProductsStore, type Product } from "@/store/products.store"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardContent
 } from "@/components/ui/card"
 
@@ -21,28 +28,16 @@ import {
   Pencil,
   Trash2,
   Upload,
-  Tag,
-  Image as ImageIcon,
-  DollarSign,
-  Percent,
-  Package
+  Package,
+  Search,
+  Plus
 } from "lucide-react"
 
 // =========================
-// MOCK CATEGORIES
+// DATA
 // =========================
 
-const categories = [
-  "Ropa",
-  "Tecnología",
-  "Accesorios",
-  "Hogar",
-  "Aceites"
-]
-
-// =========================
-// TYPES
-// =========================
+const categories = ["Ropa", "Tecnología", "Accesorios", "Hogar", "Aceites"]
 
 type ProductForm = {
   name: string
@@ -77,7 +72,10 @@ const getFinalPrice = (price: number, discount: number) =>
 // IMAGE UPLOAD
 // =========================
 
-function ImageUpload({ value, onChange }: {
+function ImageUpload({
+  value,
+  onChange,
+}: {
   value: string
   onChange: (url: string) => void
 }) {
@@ -85,11 +83,7 @@ function ImageUpload({ value, onChange }: {
 
   const handleFile = (file: File) => {
     const validTypes = ["image/jpeg", "image/png", "image/jpg"]
-
-    if (!validTypes.includes(file.type)) {
-      alert("Solo JPG, JPEG o PNG")
-      return
-    }
+    if (!validTypes.includes(file.type)) return
 
     const url = URL.createObjectURL(file)
     onChange(url)
@@ -99,9 +93,9 @@ function ImageUpload({ value, onChange }: {
     <div className="space-y-3">
       <button
         type="button"
-        aria-label="Subir imagen"
         onClick={() => inputRef.current?.click()}
         className="w-full border border-dashed rounded-xl p-6 text-center hover:bg-muted transition"
+        aria-label="Subir imagen"
       >
         <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
           <Upload className="w-5 h-5" />
@@ -110,11 +104,11 @@ function ImageUpload({ value, onChange }: {
       </button>
 
       <input
-        title="file"
         ref={inputRef}
         type="file"
         accept="image/png, image/jpeg, image/jpg"
         className="hidden"
+        title="Subir imagen"
         onChange={(e) => {
           const file = e.target.files?.[0]
           if (file) handleFile(file)
@@ -124,7 +118,7 @@ function ImageUpload({ value, onChange }: {
       {value && (
         <img
           src={value}
-          alt="Preview producto"
+          alt="Imagen del producto"
           className="w-24 h-24 rounded-xl object-cover border"
         />
       )}
@@ -133,17 +127,18 @@ function ImageUpload({ value, onChange }: {
 }
 
 // =========================
-// MAIN MODULE
+// MAIN
 // =========================
 
 export default function AdminProducts() {
-
-  const { products, addProduct, updateProduct, deleteProduct } = useProductsStore()
+  const { products, addProduct, updateProduct, deleteProduct } =
+    useProductsStore()
 
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [form, setForm] = useState<ProductForm>(initialForm)
   const [search, setSearch] = useState("")
+  const [sorting, setSorting] = useState<SortingState>([])
 
   // =========================
   // HANDLERS
@@ -160,7 +155,6 @@ export default function AdminProducts() {
     const payload: Product = {
       id: editingId ?? Date.now(),
       ...form,
-      discountPercentage: form.discountPercentage ?? 0
     }
 
     if (editingId) updateProduct(payload)
@@ -181,16 +175,109 @@ export default function AdminProducts() {
       price: p.price,
       image: p.image,
       category: p.category,
-      discountPercentage: p.discountPercentage ?? 0
+      discountPercentage: p.discountPercentage ?? 0,
     })
     setOpen(true)
   }
 
   const filtered = useMemo(() => {
-    return products.filter(p =>
+    return products.filter((p) =>
       p.name.toLowerCase().includes(search.toLowerCase())
     )
   }, [products, search])
+
+  // =========================
+  // COLUMNS
+  // =========================
+
+  const columns: ColumnDef<Product>[] = [
+    {
+      accessorKey: "name",
+      header: "Producto",
+      cell: ({ row }) => {
+        const p = row.original
+        return (
+          <div className="flex items-center gap-3">
+            <img
+              src={p.image}
+              alt={p.name}
+              className="w-10 h-10 rounded-md object-cover"
+            />
+            <div>
+              <div className="font-medium">{p.name}</div>
+              {p.discountPercentage ? (
+                <div className="text-xs text-green-600">
+                  {p.discountPercentage}% descuento
+                </div>
+              ) : null}
+            </div>
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: "category",
+      header: "Categoría",
+    },
+    {
+      id: "price",
+      header: "Precio final",
+      cell: ({ row }) => {
+        const p = row.original
+        const discount = p.discountPercentage ?? 0
+        const final = getFinalPrice(p.price, discount)
+
+        return (
+          <div className="flex flex-col">
+            {discount > 0 && (
+              <span className="text-xs line-through text-muted-foreground">
+                {formatCLP(p.price)}
+              </span>
+            )}
+            <span className="font-semibold">
+              {formatCLP(final)}
+            </span>
+          </div>
+        )
+      },
+    },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }) => {
+        const p = row.original
+
+        return (
+          <div className="flex justify-end gap-2">
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={() => editProduct(p)}
+            >
+              <Pencil className="w-4 h-4" />
+            </Button>
+
+            <Button
+              size="icon"
+              variant="destructive"
+              onClick={() => deleteProduct(p.id)}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        )
+      },
+    },
+  ]
+
+  const table = useReactTable({
+    data: filtered,
+    columns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  })
 
   // =========================
   // UI
@@ -201,227 +288,229 @@ export default function AdminProducts() {
 
       {/* HEADER */}
       <div className="flex flex-col lg:flex-row justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Package className="w-6 h-6" />
+
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-muted">
+            <Package className="w-5 h-5" />
+          </div>
           <div>
-            <h1 className="text-2xl font-semibold">Productos</h1>
-            <p className="text-sm text-muted-foreground">Gestión de catálogo</p>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Catálogo de productos
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Gestión avanzada de productos
+            </p>
           </div>
         </div>
 
         <div className="flex gap-2">
-          <Input
-            placeholder="Buscar producto"
-            aria-label="Buscar producto"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+            <Input
+              className="pl-9 w-60"
+              placeholder="Buscar productos"
+              aria-label="Buscar productos"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
 
           <Button onClick={openCreate} className="gap-2">
-            <Tag className="w-4 h-4" />
-            Nuevo
+            <Plus className="w-4 h-4" />
+            Nuevo producto
           </Button>
         </div>
       </div>
 
       {/* TABLE */}
       <Card>
-        <CardHeader>
-          <CardTitle>Productos</CardTitle>
-        </CardHeader>
-
         <CardContent className="p-0">
+
           <table className="w-full text-sm">
-            <thead className="bg-muted">
-              <tr>
-                <th className="p-4 text-left">Producto</th>
-                <th className="p-4 text-left">Categoría</th>
-                <th className="p-4 text-left">Precio</th>
-                <th className="p-4 text-right">Acciones</th>
-              </tr>
+
+            <thead className="bg-muted/50">
+              {table.getHeaderGroups().map((hg) => (
+                <tr key={hg.id}>
+                  {hg.headers.map((header) => (
+                    <th
+                      key={header.id}
+                      onClick={header.column.getToggleSortingHandler()}
+                      className="p-4 text-left font-medium cursor-pointer select-none"
+                    >
+                      <div className="flex items-center gap-1">
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+
+                        {{
+                          asc: "↑",
+                          desc: "↓",
+                        }[header.column.getIsSorted() as string] ?? null}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              ))}
             </thead>
 
             <tbody>
-              {filtered.map((p) => {
-                const discount = p.discountPercentage ?? 0
-                const finalPrice = getFinalPrice(p.price, discount)
-
-                return (
-                  <tr key={p.id} className="border-t hover:bg-muted/40">
-
-                    <td className="p-4 flex items-center gap-3">
-                      <img src={p.image} alt={p.name} className="w-12 h-12 rounded-lg object-cover" />
-                      <div className="flex flex-col">
-                        <span className="font-medium">{p.name}</span>
-                        {discount > 0 && (
-                          <span className="text-xs text-green-600">-{discount}%</span>
+              {table.getRowModel().rows.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length}>
+                    <div className="p-10 text-center text-muted-foreground">
+                      No hay productos
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <tr
+                    key={row.id}
+                    className="border-t hover:bg-muted/40 transition"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="p-4">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
                         )}
-                      </div>
-                    </td>
-
-                    <td className="p-4 text-muted-foreground">{p.category}</td>
-
-                    <td className="p-4">
-                      {discount > 0 ? (
-                        <div className="flex flex-col">
-                          <span className="text-xs line-through text-muted-foreground">
-                            {formatCLP(p.price)}
-                          </span>
-                          <span className="font-semibold text-green-600">
-                            {formatCLP(finalPrice)}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="font-semibold">
-                          {formatCLP(p.price)}
-                        </span>
-                      )}
-                    </td>
-
-                    <td className="p-4 text-right flex gap-2 justify-end">
-                      <Button size="icon" variant="outline" onClick={() => editProduct(p)}>
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-
-                      <Button size="icon" variant="destructive" onClick={() => deleteProduct(p.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </td>
-
+                      </td>
+                    ))}
                   </tr>
-                )
-              })}
+                ))
+              )}
             </tbody>
+
           </table>
+
         </CardContent>
       </Card>
 
       {/* MODAL */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-4xl">
 
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">
+            <DialogTitle>
               {editingId ? "Editar producto" : "Nuevo producto"}
             </DialogTitle>
           </DialogHeader>
 
-          {/* GRID */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-8">
 
-            {/* LEFT: FORM */}
-            <div className="space-y-4">
+            <div className="space-y-5">
 
-              <div className="space-y-1">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Tag className="w-4 h-4" /> Nombre
-                </label>
-                <Input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                />
-              </div>
+              <Input
+                placeholder="Nombre"
+                aria-label="Nombre"
+                value={form.name}
+                onChange={(e) =>
+                  setForm({ ...form, name: e.target.value })
+                }
+              />
 
-              <div className="space-y-1">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" /> Precio
-                </label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={form.price}
-                  onChange={(e) => {
-                    const v = Math.max(0, Number(e.target.value))
-                    setForm({ ...form, price: v })
+              <Input
+                type="number"
+                placeholder="Precio"
+                aria-label="Precio"
+                value={form.price}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    price: Math.max(0, Number(e.target.value)),
+                  })
+                }
+              />
+
+              <select
+                aria-label="Categoría"
+                value={form.category}
+                onChange={(e) =>
+                  setForm({ ...form, category: e.target.value })
+                }
+                className="w-full border rounded-lg h-10 px-3 text-sm"
+              >
+                <option value="">Seleccionar</option>
+                {categories.map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
+
+              <Input
+                type="number"
+                placeholder="Descuento %"
+                aria-label="Descuento"
+                value={form.discountPercentage}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    discountPercentage: Math.min(
+                      100,
+                      Math.max(0, Number(e.target.value))
+                    ),
+                  })
+                }
+              />
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleSubmit()
+                    setOpen(false)
                   }}
-                />
-                {form.price > 0 && <span className="text-sm text-muted-foreground">{formatCLP(form.price)}</span>}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Categoría</label>
-                <select
-                  title="form"
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full border rounded-lg h-10 px-3 text-sm"
                 >
-                  <option value="">Seleccionar</option>
-                  {categories.map(c => <option key={c}>{c}</option>)}
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Percent className="w-4 h-4" /> Descuento
-                </label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={form.discountPercentage}
-                  onChange={(e) => {
-                    let v = Number(e.target.value)
-                    if (v < 0) v = 0
-                    if (v > 100) v = 100
-                    setForm({ ...form, discountPercentage: v })
-                  }}
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-                <Button onClick={() => { handleSubmit(); setOpen(false) }}>
                   Guardar
                 </Button>
               </div>
-
             </div>
 
-            {/* RIGHT: PREVIEW */}
-            <div className="space-y-4">
+            <div className="space-y-5">
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4" /> Imagen
-                </label>
-                <ImageUpload
-                  value={form.image}
-                  onChange={(url) => setForm({ ...form, image: url })}
-                />
-              </div>
+              <ImageUpload
+                value={form.image}
+                onChange={(url) =>
+                  setForm({ ...form, image: url })
+                }
+              />
 
-              {/* PRODUCT PREVIEW */}
-              <Card className="p-4">
+              <Card className="p-5">
                 <div className="space-y-3">
 
-                  {form.image ? (
-                    <img src={form.image} alt="Preview" className="w-full h-40 object-cover rounded-lg" />
-                  ) : (
-                    <div className="w-full h-40 bg-muted rounded-lg flex items-center justify-center text-sm text-muted-foreground">
-                      Sin imagen
-                    </div>
-                  )}
-
-                  <div className="space-y-1">
-                    <div className="font-medium">
-                      {form.name || "Nombre del producto"}
-                    </div>
-
-                    {form.discountPercentage > 0 ? (
-                      <div className="flex flex-col">
-                        <span className="text-xs line-through text-muted-foreground">
-                          {formatCLP(form.price)}
-                        </span>
-                        <span className="text-green-600 font-semibold">
-                          {formatCLP(getFinalPrice(form.price, form.discountPercentage))}
-                        </span>
-                      </div>
+                  <div className="h-40 bg-muted rounded-lg overflow-hidden flex items-center justify-center">
+                    {form.image ? (
+                      <img
+                        src={form.image}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
-                      <div className="font-semibold">
-                        {formatCLP(form.price)}
-                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        Vista previa
+                      </span>
                     )}
+                  </div>
+
+                  <div>
+                    <div className="font-medium">
+                      {form.name || "Producto"}
+                    </div>
+
+                    <div className="text-sm text-muted-foreground">
+                      {form.category || "Categoría"}
+                    </div>
+
+                    <div className="mt-2 font-semibold">
+                      {formatCLP(
+                        getFinalPrice(
+                          form.price,
+                          form.discountPercentage
+                        )
+                      )}
+                    </div>
                   </div>
 
                 </div>

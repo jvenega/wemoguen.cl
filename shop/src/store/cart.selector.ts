@@ -53,7 +53,7 @@ export function useCartTotals() {
     let total = totals.subtotal + shipping
 
     // aplicar cupón (escalable)
-    if (coupon === "WE10") {
+    if (coupon?.code === "WE10") {
       total *= 0.9
     }
 

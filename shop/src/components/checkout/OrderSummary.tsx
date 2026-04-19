@@ -1,14 +1,18 @@
 import { useCartStore } from "@/store/cart.store"
 
 interface Props {
-  onConfirm: () => void
-  isPending: boolean
+  showButton?: boolean
+  onConfirm?: () => void
+  isPending?: boolean
 }
 
-export default function OrderSummary({ onConfirm, isPending }: Props) {
+export default function OrderSummary({
+  showButton = false,
+  onConfirm,
+  isPending = false
+}: Props) {
 
   const items = useCartStore(s => s.items)
-  const coupon = useCartStore(s => s.coupon)
 
   const FREE_SHIPPING_THRESHOLD = 50000
   const SHIPPING_COST = 3500
@@ -33,17 +37,13 @@ export default function OrderSummary({ onConfirm, isPending }: Props) {
       ? 0
       : SHIPPING_COST
 
-  let total = subtotal + shipping
-
-  if (coupon === "WE10") {
-    total = total * 0.9
-  }
+  const total = subtotal + shipping
 
   return (
     <div className="bg-white border rounded-2xl p-8 shadow-sm">
 
       <h3 className="text-lg font-medium mb-6 text-[#4B2863]">
-        Resumen de la solicitud
+        Resumen
       </h3>
 
       <div className="space-y-4 text-sm">
@@ -88,19 +88,23 @@ export default function OrderSummary({ onConfirm, isPending }: Props) {
 
       </div>
 
-      <button
-        onClick={onConfirm}
-        disabled={isPending}
-        className="w-full mt-8 rounded-xl bg-[#4B2863] py-3 text-white font-medium hover:bg-[#3c1f4f] transition disabled:opacity-60"
-      >
-        {isPending
-          ? "Creando solicitud..."
-          : "Confirmar solicitud"}
-      </button>
+      {showButton && onConfirm && (
+        <>
+          <button
+            onClick={onConfirm}
+            disabled={isPending}
+            className="w-full mt-8 rounded-xl bg-[#4B2863] py-3 text-white font-medium hover:bg-[#3c1f4f] transition disabled:opacity-60"
+          >
+            {isPending
+              ? "Procesando..."
+              : "Confirmar solicitud"}
+          </button>
 
-      <p className="text-xs text-gray-400 text-center mt-3">
-        🔒 Confirmarás antes de realizar el pago
-      </p>
+          <p className="text-xs text-gray-400 text-center mt-3">
+            Confirmarás antes de realizar el pago
+          </p>
+        </>
+      )}
 
     </div>
   )

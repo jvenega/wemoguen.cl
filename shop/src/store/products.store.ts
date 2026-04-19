@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { persist, createJSONStorage } from "zustand/middleware"
 import productsData from "../mock/products.json"
 
 export type Product = {
@@ -18,43 +19,49 @@ type ProductStore = {
 }
 
 /* =========================
-   CARGA INICIAL
+   STORE
 ========================= */
 
-const loadProducts = (): Product[] => {
-  const saved = localStorage.getItem("products")
+export const useProductsStore = create<ProductStore>()(
+  persist(
+    (set) => ({
+      products: productsData,
 
-  if (saved) {
-    return JSON.parse(saved)
-  }
+      addProduct: (product) =>
+        set((state) => ({
+          products: [...state.products, product],
+        })),
 
-  localStorage.setItem("products", JSON.stringify(productsData))
-  return productsData
-}
+      updateProduct: (product) =>
+        set((state) => ({
+          products: state.products.map((p) =>
+            p.id === product.id ? product : p
+          ),
+        })),
 
-export const useProductsStore = create<ProductStore>((set) => ({
-  products: loadProducts(),
-
-  addProduct: (product) =>
-    set((state) => {
-      const updated = [...state.products, product]
-      localStorage.setItem("products", JSON.stringify(updated))
-      return { products: updated }
+      deleteProduct: (id) =>
+        set((state) => ({
+          products: state.products.filter((p) => p.id !== id),
+        })),
     }),
+    {
+      name: "products-storage",
+      storage: createJSONStorage(() => localStorage),
 
-  updateProduct: (product) =>
-    set((state) => {
-      const updated = state.products.map((p) =>
-        p.id === product.id ? product : p
-      )
-      localStorage.setItem("products", JSON.stringify(updated))
-      return { products: updated }
-    }),
+      partialize: (state) => ({
+        products: state.products,
+      }),
 
-  deleteProduct: (id) =>
-    set((state) => {
-      const updated = state.products.filter((p) => p.id !== id)
-      localStorage.setItem("products", JSON.stringify(updated))
-      return { products: updated }
-    }),
-}))
+      /* =========================
+         MIGRACIÓN INICIAL
+      ========================= */
+      onRehydrateStorage: () => (state) => {
+        if (!state?.products?.length) {
+          useProductsStore.setState({
+            products: productsData,
+          })
+        }
+      },
+    }
+  )
+)

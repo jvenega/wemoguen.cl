@@ -1,7 +1,10 @@
+import type { Delivery } from "@/types/delivery.types"
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 
-
+/* =========================
+   TYPES
+========================= */
 
 export type Product = {
   id: number
@@ -12,24 +15,80 @@ export type Product = {
   discountPercentage?: number
 }
 
-export type CartItem = Product & {
+export type CartItem = {
+  productId: number
+  name: string
+  image: string
+
+  price: number
+  basePrice: number
+
+  discountPercentage?: number
   quantity: number
 }
 
+type Coupon = {
+  code: string
+  type: "percentage" | "fixed"
+  value: number
+}
+
+type CartTotals = {
+  subtotal: number
+  discount: number
+  shipping: number
+  total: number
+}
+
+/* =========================
+   CONFIG
+========================= */
+
+const FREE_SHIPPING_THRESHOLD = 50000
+const SHIPPING_COST = 3500
+
+const coupons: Record<string, Coupon> = {
+  WE10: {
+    code: "WE10",
+    type: "percentage",
+    value: 0.1
+  }
+}
+
+/* =========================
+   STATE
+========================= */
+
 type CartState = {
   items: CartItem[]
-  coupon?: string
+  coupon?: Coupon
+
+  // ✅ CORRECTO: delivery global
+  delivery: Delivery | null
+  setDelivery: (delivery: Delivery) => void
 
   addItem: (product: Product) => void
-  removeItem: (id: number) => void
-  updateQuantity: (id: number, quantity: number) => void
+  removeItem: (productId: number) => void
+  updateQuantity: (productId: number, quantity: number) => void
   clearCart: () => void
   applyCoupon: (code: string) => void
+
+  getTotals: () => CartTotals
+  getPayload: () => {
+    items: {
+      productId: number
+      quantity: number
+      price: number
+      basePrice: number
+      discountPercentage?: number
+    }[]
+    coupon?: string
+  }
 }
 
-const coupons: Record<string, number> = {
-  WE10: 0.1
-}
+/* =========================
+   STORE
+========================= */
 
 export const useCartStore = create<CartState>()(
   persist(
@@ -38,73 +97,146 @@ export const useCartStore = create<CartState>()(
       items: [],
       coupon: undefined,
 
+      // ✅ NUEVO
+      delivery: null,
+
+      setDelivery: (delivery) => set({ delivery }),
+
       addItem: (product) => {
+        set((state) => {
 
-        const items = get().items
-        const existing = items.find(i => i.id === product.id)
-
-        if (existing) {
-          set({
-            items: items.map(i =>
-              i.id === product.id
-                ? { ...i, quantity: i.quantity + 1 }
-                : i
-            )
-          })
-        } else {
-          set({
-            items: [...items, { ...product, quantity: 1 }]
-          })
-        }
-
-      },
-
-      updateQuantity: (id, quantity) => {
-
-        const items = get().items
-
-        if (quantity <= 0) {
-          set({
-            items: items.filter(i => i.id !== id)
-          })
-          return
-        }
-
-        set({
-          items: items.map(i =>
-            i.id === id ? { ...i, quantity } : i
+          const existing = state.items.find(
+            i => i.productId === product.id
           )
-        })
 
+          const finalPrice = product.discountPercentage
+            ? product.price - product.price * (product.discountPercentage / 100)
+            : product.price
+
+          if (existing) {
+            return {
+              items: state.items.map(i =>
+                i.productId === product.id
+                  ? { ...i, quantity: i.quantity + 1 }
+                  : i
+              )
+            }
+          }
+
+          return {
+            items: [
+              ...state.items,
+              {
+                productId: product.id,
+                name: product.name,
+                image: product.image,
+                price: finalPrice,
+                basePrice: product.price,
+                discountPercentage: product.discountPercentage,
+                quantity: 1
+              }
+            ]
+          }
+        })
       },
 
-      removeItem: (id) => {
-        set({
-          items: get().items.filter(i => i.id !== id)
+      updateQuantity: (productId, quantity) => {
+        set((state) => {
+
+          if (quantity <= 0) {
+            return {
+              items: state.items.filter(i => i.productId !== productId)
+            }
+          }
+
+          return {
+            items: state.items.map(i =>
+              i.productId === productId ? { ...i, quantity } : i
+            )
+          }
         })
+      },
+
+      removeItem: (productId) => {
+        set((state) => ({
+          items: state.items.filter(i => i.productId !== productId)
+        }))
       },
 
       clearCart: () => {
         set({
           items: [],
-          coupon: undefined
+          coupon: undefined,
+          delivery: null // ✅ importante
         })
       },
 
       applyCoupon: (code) => {
-
         const normalized = code.trim().toUpperCase()
+        if (!normalized) return
 
-        if (coupons[normalized]) {
-          set({ coupon: normalized })
+        const found = coupons[normalized]
+
+        set({
+          coupon: found ? found : undefined
+        })
+      },
+
+      getTotals: () => {
+
+        const { items, coupon } = get()
+
+        const subtotal = items.reduce(
+          (acc, i) => acc + i.price * i.quantity,
+          0
+        )
+
+        let discount = 0
+
+        if (coupon) {
+          discount = coupon.type === "percentage"
+            ? subtotal * coupon.value
+            : coupon.value
         }
 
+        const shipping =
+          subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
+
+        const total = Math.max(subtotal - discount + shipping, 0)
+
+        return {
+          subtotal,
+          discount,
+          shipping,
+          total
+        }
+      },
+
+      getPayload: () => {
+        const { items, coupon } = get()
+
+        return {
+          items: items.map(i => ({
+            productId: i.productId,
+            quantity: i.quantity,
+            price: i.price,
+            basePrice: i.basePrice,
+            discountPercentage: i.discountPercentage
+          })),
+          coupon: coupon?.code
+        }
       }
 
     }),
     {
       name: "cart-storage",
-      storage: createJSONStorage(() => localStorage)
+      storage: createJSONStorage(() => localStorage),
+
+      partialize: (state) => ({
+        items: state.items,
+        coupon: state.coupon,
+        delivery: state.delivery // ✅ persistimos delivery
+      })
     }
   )
 )

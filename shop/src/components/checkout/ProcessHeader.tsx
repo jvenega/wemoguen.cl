@@ -13,8 +13,9 @@ type Step = {
 
 const steps: Step[] = [
   { label: "Solicitud", icon: FileText },
-  { label: "Validación", icon: ShieldCheck },
-  { label: "Transferencia", icon: Landmark },
+  { label: "Entrega", icon: ShieldCheck },
+  { label: "Revisión", icon: FileText },
+  { label: "Pago", icon: Landmark },
   { label: "Confirmación", icon: BadgeCheck },
 ]
 

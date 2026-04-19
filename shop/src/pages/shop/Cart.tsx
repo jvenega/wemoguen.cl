@@ -1,49 +1,29 @@
 import { useCartStore } from "@/store/cart.store"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import ProcessHeader from "@/components/checkout/ProcessHeader"
 import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react"
-import { useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
 const FREE_SHIPPING_THRESHOLD = 50000
-const SHIPPING_COST = 3500
 
 export default function Cart() {
+
+  const navigate = useNavigate()
 
   const items = useCartStore(s => s.items)
   const removeItem = useCartStore(s => s.removeItem)
   const updateQuantity = useCartStore(s => s.updateQuantity)
+  const getTotals = useCartStore(s => s.getTotals)
 
-  const {
-    subtotal,
-    savings,
-    shipping,
-    total
-  } = useMemo(() => {
+  const { subtotal, discount, shipping, total } = getTotals()
 
-    let subtotal = 0
-    let savings = 0
+  const isEmpty = items.length === 0
 
-    for (const item of items) {
-      const price = item.discountPercentage
-        ? item.price - item.price * (item.discountPercentage / 100)
-        : item.price
-
-      subtotal += price * item.quantity
-      savings += (item.price - price) * item.quantity
+  const handleContinue = () => {
+    if (!isEmpty) {
+      navigate("/checkout")
     }
-
-    const shipping =
-      subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
-
-    return {
-      subtotal,
-      savings,
-      shipping,
-      total: subtotal + shipping
-    }
-
-  }, [items])
+  }
 
   return (
     <div className="bg-[#f6f4f9] min-h-screen pb-24 lg:pb-0">
@@ -67,7 +47,7 @@ export default function Cart() {
         </div>
 
         {/* ENVÍO GRATIS */}
-        {subtotal < FREE_SHIPPING_THRESHOLD && items.length > 0 && (
+        {subtotal < FREE_SHIPPING_THRESHOLD && !isEmpty && (
           <div className="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm p-3 rounded-lg">
             Te faltan{" "}
             <strong>
@@ -83,7 +63,7 @@ export default function Cart() {
           <div className="space-y-4">
 
             {/* EMPTY */}
-            {items.length === 0 && (
+            {isEmpty && (
               <div className="bg-white rounded-xl p-12 text-center border shadow-sm">
                 <ShoppingCart size={48} className="mx-auto text-gray-300 mb-4" />
 
@@ -108,13 +88,11 @@ export default function Cart() {
             <AnimatePresence>
               {items.map((item) => {
 
-                const price = item.discountPercentage
-                  ? item.price - item.price * (item.discountPercentage / 100)
-                  : item.price
+                const price = item.price
 
                 return (
                   <motion.div
-                    key={item.id}
+                    key={item.productId}
                     layout
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -143,9 +121,10 @@ export default function Cart() {
                           </p>
 
                           <div className="flex items-center gap-2 mt-1">
-                            {item.discountPercentage && (
+
+                            {item.basePrice > item.price && (
                               <span className="text-xs line-through text-gray-400">
-                                ${item.price.toLocaleString()}
+                                ${item.basePrice.toLocaleString()}
                               </span>
                             )}
 
@@ -165,7 +144,7 @@ export default function Cart() {
                               title="quantity"
                               disabled={item.quantity <= 1}
                               onClick={() =>
-                                updateQuantity(item.id, item.quantity - 1)
+                                updateQuantity(item.productId, item.quantity - 1)
                               }
                               className="w-8 h-8 flex items-center justify-center disabled:opacity-40"
                             >
@@ -177,9 +156,9 @@ export default function Cart() {
                             </span>
 
                             <button
-                              title="update"
+                              title="update-quantity"
                               onClick={() =>
-                                updateQuantity(item.id, item.quantity + 1)
+                                updateQuantity(item.productId, item.quantity + 1)
                               }
                               className="w-8 h-8 flex items-center justify-center"
                             >
@@ -206,7 +185,7 @@ export default function Cart() {
                     <div className="flex justify-between items-center mt-3 pt-3 border-t">
 
                       <button
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(item.productId)}
                         className="text-xs text-red-500 flex items-center gap-1 hover:underline"
                       >
                         <Trash2 size={14} />
@@ -238,10 +217,10 @@ export default function Cart() {
 
               <div className="space-y-3 text-sm">
 
-                {savings > 0 && (
+                {discount > 0 && (
                   <div className="flex justify-between text-green-600">
-                    <span>Ahorro</span>
-                    <span>- ${savings.toLocaleString()}</span>
+                    <span>Descuento</span>
+                    <span>- ${discount.toLocaleString()}</span>
                   </div>
                 )}
 
@@ -266,12 +245,18 @@ export default function Cart() {
                 <span>${total.toLocaleString()}</span>
               </div>
 
-              <Link
-                to="/checkout"
-                className="block text-center w-full mt-6 bg-[#4B2863] text-white py-3 rounded-lg hover:bg-[#3c1f4f] transition"
+              <button
+                onClick={handleContinue}
+                disabled={isEmpty}
+                className={`
+                  w-full mt-6 py-3 rounded-lg transition
+                  ${isEmpty
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-[#4B2863] text-white hover:bg-[#3c1f4f]"}
+                `}
               >
                 Continuar solicitud
-              </Link>
+              </button>
 
             </div>
           </div>
@@ -281,7 +266,7 @@ export default function Cart() {
       </div>
 
       {/* MOBILE STICKY */}
-      {items.length > 0 && (
+      {!isEmpty && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex items-center justify-between lg:hidden z-50">
 
           <div>
@@ -291,12 +276,18 @@ export default function Cart() {
             </p>
           </div>
 
-          <Link
-            to="/checkout"
-            className="bg-[#4B2863] text-white px-5 py-2 rounded-lg font-medium"
+          <button
+            onClick={handleContinue}
+            disabled={isEmpty}
+            className={`
+              px-5 py-2 rounded-lg font-medium
+              ${isEmpty
+                ? "bg-gray-300 text-gray-500"
+                : "bg-[#4B2863] text-white"}
+            `}
           >
             Continuar
-          </Link>
+          </button>
 
         </div>
       )}

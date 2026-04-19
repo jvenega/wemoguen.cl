@@ -1,5 +1,4 @@
 import { useMyOrders } from "@/hooks/orders.hook"
-import ProcessHeader from "@/components/checkout/ProcessHeader"
 import { Link } from "react-router-dom"
 import type { OrderStatus } from "@/types/order.types"
 import {
@@ -80,7 +79,6 @@ export default function Orders() {
 
       <div className="max-w-6xl mx-auto px-6 py-16">
 
-        <ProcessHeader currentStep={4} />
 
         <div className="mb-12">
           <h1 className="text-3xl font-semibold text-[#4B2863]">

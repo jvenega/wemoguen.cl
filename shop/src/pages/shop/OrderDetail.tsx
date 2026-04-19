@@ -5,7 +5,6 @@ import {
   useUploadReceipt,
 } from "@/hooks/orders.hook"
 import { useQueryClient } from "@tanstack/react-query"
-import ProcessHeader from "@/components/checkout/ProcessHeader"
 
 export default function OrderDetail() {
 
@@ -47,7 +46,6 @@ export default function OrderDetail() {
     <div className="bg-[#f6f4f9] min-h-screen">
       <div className="max-w-7xl mx-auto px-6 py-16">
 
-        <ProcessHeader currentStep={4} />
 
         <div className="flex justify-between items-center mb-10">
 

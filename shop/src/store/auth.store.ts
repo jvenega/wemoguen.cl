@@ -11,6 +11,7 @@ type AuthState = {
   user: User | null
   accessToken: string | null
   isLoading: boolean
+  hasHydrated: boolean
 
   // actions
   setAuth: (user: User, token: string) => void
@@ -21,16 +22,28 @@ type AuthState = {
 }
 
 // =========================
+// UTILS
+// =========================
+
+const setAuthHeader = (token: string | null) => {
+  if (token) {
+    api.defaults.headers.common.Authorization = `Bearer ${token}`
+  } else {
+    delete api.defaults.headers.common.Authorization
+  }
+}
+
+// =========================
 // STORE
 // =========================
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-
       user: null,
       accessToken: null,
       isLoading: true,
+      hasHydrated: false,
 
       /* =========================
          SET AUTH
@@ -42,31 +55,29 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
         })
 
-        // 🔐 set global header
-        api.defaults.headers.common.Authorization = `Bearer ${token}`
+        setAuthHeader(token)
       },
 
       /* =========================
-         LOGOUT (ROBUSTO)
+         LOGOUT (MEJORADO)
       ========================= */
       logout: () => {
-        const state = get()
+        const { user, accessToken } = get()
 
-        // evitar ejecuciones innecesarias
-        if (!state.user && !state.accessToken) return
+        if (!user && !accessToken) return
 
-        // 1. limpiar persistencia primero
-        useAuthStore.persist.clearStorage()
-
-        // 2. limpiar headers globales
-        delete api.defaults.headers.common.Authorization
-
-        // 3. resetear estado completo
+        // 1. resetear estado (primero)
         set({
           user: null,
           accessToken: null,
           isLoading: false,
         })
+
+        // 2. limpiar persistencia
+        useAuthStore.persist.clearStorage()
+
+        // 3. limpiar headers
+        setAuthHeader(null)
       },
 
       /* =========================
@@ -74,9 +85,8 @@ export const useAuthStore = create<AuthState>()(
       ========================= */
       isAuthenticated: () => {
         const { accessToken, user } = get()
-        return !!accessToken && !!user
+        return Boolean(accessToken && user)
       },
-
     }),
     {
       name: "auth-storage",
@@ -88,24 +98,31 @@ export const useAuthStore = create<AuthState>()(
       }),
 
       /* =========================
-         REHYDRATION CONTROL
+         REHYDRATION CONTROL (FIX)
       ========================= */
       onRehydrateStorage: () => (state) => {
         if (!state) return
 
-        // 🔴 consistencia fuerte
-        if (!state.accessToken || !state.user) {
-          state.user = null
-          state.accessToken = null
+        const isValid = state.accessToken && state.user
+
+        if (!isValid) {
+          useAuthStore.setState({
+            user: null,
+            accessToken: null,
+            isLoading: false,
+            hasHydrated: true,
+          })
+          setAuthHeader(null)
+          return
         }
 
-        // 🔐 restaurar header si existe token
-        if (state.accessToken) {
-          api.defaults.headers.common.Authorization = `Bearer ${state.accessToken}`
-        }
+        // restaurar header correctamente
+        setAuthHeader(state.accessToken)
 
-        // ✅ fin de carga
-        state.isLoading = false
+        useAuthStore.setState({
+          isLoading: false,
+          hasHydrated: true,
+        })
       },
     }
   )

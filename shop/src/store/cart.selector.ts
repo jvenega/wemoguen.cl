@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { useCartStore } from "./cart.store"
 import {
   FREE_SHIPPING_THRESHOLD,
@@ -11,49 +12,59 @@ export function useCartTotals() {
   const items = useCartStore(s => s.items)
   const coupon = useCartStore(s => s.coupon)
 
-  let subtotal = 0
-  let savings = 0
-  let originalSubtotal = 0
-  let itemsCount = 0
+  return useMemo(() => {
 
-  for (const item of items) {
+    const totals = items.reduce(
+      (acc, item) => {
 
-    const itemSubtotal = getItemSubtotal(
-      item.price,
-      item.quantity,
-      item.discountPercentage
+        const itemSubtotal = getItemSubtotal(
+          item.price,
+          item.quantity,
+          item.discountPercentage
+        )
+
+        const itemSavings = getItemSavings(
+          item.price,
+          item.quantity,
+          item.discountPercentage
+        )
+
+        acc.subtotal += itemSubtotal
+        acc.savings += itemSavings
+        acc.originalSubtotal += item.price * item.quantity
+        acc.itemsCount += item.quantity
+
+        return acc
+
+      },
+      {
+        subtotal: 0,
+        savings: 0,
+        originalSubtotal: 0,
+        itemsCount: 0
+      }
     )
 
-    const itemSavings = getItemSavings(
-      item.price,
-      item.quantity,
-      item.discountPercentage
-    )
+    const shipping =
+      totals.subtotal >= FREE_SHIPPING_THRESHOLD
+        ? 0
+        : SHIPPING_COST
 
-    subtotal += itemSubtotal
-    savings += itemSavings
-    originalSubtotal += item.price * item.quantity
-    itemsCount += item.quantity
+    let total = totals.subtotal + shipping
 
-  }
+    // aplicar cupón (escalable)
+    if (coupon === "WE10") {
+      total *= 0.9
+    }
 
-  const shipping =
-    subtotal >= FREE_SHIPPING_THRESHOLD
-      ? 0
-      : SHIPPING_COST
+    return {
+      subtotal: Math.round(totals.subtotal),
+      originalSubtotal: Math.round(totals.originalSubtotal),
+      savings: Math.round(totals.savings),
+      shipping,
+      total: Math.round(total),
+      itemsCount: totals.itemsCount
+    }
 
-  let total = subtotal + shipping
-
-  if (coupon === "WE10") {
-    total = total * 0.9
-  }
-
-  return {
-    subtotal: Math.round(subtotal),
-    originalSubtotal: Math.round(originalSubtotal),
-    savings: Math.round(savings),
-    shipping,
-    total: Math.round(total),
-    itemsCount
-  }
+  }, [items, coupon])
 }

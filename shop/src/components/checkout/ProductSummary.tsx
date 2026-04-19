@@ -23,7 +23,7 @@ export default function ProductSummary({ items }: Props) {
 
           return (
             <div
-              key={item.id}
+              key={item.productId}
               className="flex justify-between"
             >
 

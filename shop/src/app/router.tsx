@@ -8,6 +8,7 @@ import SolicitudAcceso from "@/pages/auth/SolicitudAcceso";
 
 import Cart from "@/pages/shop/Cart";
 import Checkout from "@/pages/shop/Checkout";
+import CheckoutReview from "@/pages/shop/CheckoutReview";
 import Transfer from "@/pages/shop/Transfer";
 import Confirmation from "@/pages/shop/Confirmation";
 import Orders from "@/pages/shop/Order";
@@ -45,6 +46,8 @@ export default function AppRouter() {
 
           <Route path="carrito" element={<Cart />} />
           <Route path="checkout" element={<Checkout />} />
+          <Route path="checkout/review" element={<CheckoutReview />} />
+
           <Route path="transferencia/:id" element={<Transfer />} />
           <Route path="confirmacion/:id" element={<Confirmation />} />
 

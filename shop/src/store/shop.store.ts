@@ -1,30 +1,59 @@
 import { create } from "zustand"
 
+/* =========================
+   TYPES MÁS SEGUROS
+========================= */
+
+type SortOption = "default" | "price-asc" | "price-desc" | "name-asc"
+
 type ShopState = {
   category: string
   search: string
-  sort: string
+  sort: SortOption
 
   setCategory: (v: string) => void
   setSearch: (v: string) => void
-  setSort: (v: string) => void
+  setSort: (v: SortOption) => void
 
   clearFilters: () => void
 }
 
-export const useShopStore = create<ShopState>((set) => ({
+/* =========================
+   CONSTANTES
+========================= */
+
+const INITIAL_STATE = {
   category: "all",
   search: "",
-  sort: "default",
+  sort: "default" as SortOption,
+}
 
-  setCategory: (v) => set({ category: v }),
-  setSearch: (v) => set({ search: v }),
-  setSort: (v) => set({ sort: v }),
+/* =========================
+   STORE
+========================= */
+
+export const useShopStore = create<ShopState>((set) => ({
+
+  ...INITIAL_STATE,
+
+  /* =========================
+     SETTERS (CONSISTENTES)
+  ========================= */
+
+  setCategory: (category) =>
+    set(() => ({ category })),
+
+  setSearch: (search) =>
+    set(() => ({ search })),
+
+  setSort: (sort) =>
+    set(() => ({ sort })),
+
+  /* =========================
+     RESET CENTRALIZADO
+  ========================= */
 
   clearFilters: () =>
-    set({
-      category: "all",
-      search: "",
-      sort: "default",
-    }),
+    set(() => INITIAL_STATE),
+
 }))

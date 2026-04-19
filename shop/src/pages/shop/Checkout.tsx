@@ -1,29 +1,22 @@
 import { useNavigate } from "react-router-dom"
 import { useCartStore } from "@/store/cart.store"
 import { useAuthStore } from "@/store/auth.store"
-import { useCreateOrder } from "@/hooks/orders.hook"
+
 import ProcessHeader from "@/components/checkout/ProcessHeader"
 import type { Delivery } from "@/types/delivery.types"
+
 import DeliveryForm from "@/components/checkout/DeliveryForm"
-import ProductSummary from "@/components/checkout/ProductSummary"
-import OrderSummary from "@/components/checkout/OrderSummary"
 
 import { useState } from "react"
-import { ChevronDown } from "lucide-react"
-
 
 export default function Checkout() {
 
   const navigate = useNavigate()
 
   const items = useCartStore(s => s.items)
-  const clearCart = useCartStore(s => s.clearCart)
+  const setDeliveryStore = useCartStore(s => s.setDelivery)
 
   const user = useAuthStore(s => s.user)
-
-  const { mutateAsync, isPending } = useCreateOrder()
-
-  const [summaryOpen, setSummaryOpen] = useState(false)
 
   const [delivery, setDelivery] = useState<Delivery>({
     address: "",
@@ -33,127 +26,79 @@ export default function Checkout() {
     notes: ""
   })
 
+  const isEmpty = items.length === 0
+
   const isDeliveryValid =
     delivery.address.trim() !== "" &&
     delivery.commune.trim() !== ""
 
-  const handleConfirm = async () => {
+  // ================= HANDLER =================
 
-    if (!user) return
-    if (items.length === 0) return
+  const handleContinue = () => {
 
-    if (!isDeliveryValid) {
-      alert("Completa los datos de entrega")
-      return
-    }
+    if (!user || isEmpty) return
 
-    try {
+    if (!isDeliveryValid) return
 
-      const order = await mutateAsync({
-
-        patient: {
-          fullName: user.fullName,
-          rut: String(user.rut),
-          email: user.email
-        },
-
-        delivery,
-
-        items: items.map(item => ({
-          productId: item.id,
-          quantity: item.quantity
-        }))
-
-      })
-
-      clearCart()
-
-      navigate(`/transferencia/${order.id}`)
-
-    } catch (error) {
-
-      console.error("Error al crear solicitud:", error)
-
-      alert("Ocurrió un error al crear la solicitud")
-
-    }
-
+    setDeliveryStore(delivery)
+    navigate("/checkout/review")
   }
 
-  return (
-    <div className="bg-[#f6f4f9] min-h-screen">
+  // ================= UI =================
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-16">
+  return (
+    <div className="bg-[#f6f4f9] min-h-screen pb-28">
+
+      <div className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-16">
 
         <ProcessHeader currentStep={2} />
 
         <h1 className="text-2xl md:text-3xl font-semibold text-[#4B2863] mt-6 md:mt-10 mb-10 md:mb-16">
-          Confirmación de solicitud
+          Datos de entrega
         </h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-10 lg:gap-16">
+        {/* FORM */}
+        <DeliveryForm
+          delivery={delivery}
+          setDelivery={setDelivery}
+          user={user ?? undefined}
+        />
 
-          {/* LEFT */}
-          <div className="space-y-8 md:space-y-10">
-
-            {/* MOBILE SUMMARY */}
-            <div className="lg:hidden">
-
-              <button
-                onClick={() => setSummaryOpen(prev => !prev)}
-                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center justify-between text-sm font-medium shadow-sm"
-              >
-                Ver resumen de compra
-
-                <ChevronDown
-                  size={18}
-                  className={`transition ${summaryOpen ? "rotate-180" : ""}`}
-                />
-
-              </button>
-              
-
-              {summaryOpen && (
-
-                <div className="mt-4 space-y-6">
-
-                  <ProductSummary items={items} />
-
-                  <OrderSummary
-                    onConfirm={handleConfirm}
-                    isPending={isPending}
-                  />
-
-                </div>
-
-              )}
-
-            </div>
-
-            {/* FORM */}
-            <DeliveryForm
-              delivery={delivery}
-              setDelivery={setDelivery}
-              user={user ?? undefined}
-            />
-
-          </div>
-
-          {/* RIGHT DESKTOP */}
-          <div className="hidden lg:block space-y-8 sticky top-24 h-fit">
-
-            <ProductSummary items={items} />
-
-            <OrderSummary
-              onConfirm={handleConfirm}
-              isPending={isPending}
-            />
-
-          </div>
-
-        </div>
+        {/* VALIDACIÓN VISUAL */}
+        {!isDeliveryValid && (
+          <p className="text-xs text-red-500 mt-4">
+            Completa dirección y comuna para continuar
+          </p>
+        )}
 
       </div>
+
+      {/* CTA GLOBAL */}
+      {!isEmpty && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex items-center justify-between z-50 shadow-lg">
+
+          <div>
+            <p className="text-xs text-gray-500">Siguiente paso</p>
+            <p className="font-semibold text-[#4B2863]">
+              Revisar solicitud
+            </p>
+          </div>
+
+          <button
+            onClick={handleContinue}
+            disabled={!isDeliveryValid}
+            className={`
+              px-5 py-2 rounded-lg font-medium
+              ${!isDeliveryValid
+                ? "bg-gray-300 text-gray-500"
+                : "bg-[#4B2863] text-white"}
+            `}
+          >
+            Continuar
+          </button>
+
+        </div>
+      )}
 
     </div>
   )

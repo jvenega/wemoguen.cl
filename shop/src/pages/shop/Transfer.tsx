@@ -16,18 +16,29 @@ export default function Transfer() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  const { data: order, isLoading } = useOrder(id!)
+  if (!id) return <Navigate to="/carrito" replace />
+
+  const { data: order, isLoading, isError } = useOrder(id)
   const { mutateAsync, isPending } = useUploadReceipt()
 
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
 
-  if (!id) return <Navigate to="/carrito" replace />
+  // ================= STATES =================
 
-  if (isLoading || !order) {
+  if (isLoading) {
     return <div className="p-10">Cargando solicitud...</div>
   }
+
+  if (isError || !order) {
+    return <Navigate to="/carrito" replace />
+  }
+
+  // ================= HELPERS =================
+
+  const formatCLP = (n: number) =>
+    n.toLocaleString("es-CL")
 
   // ================= HANDLERS =================
 
@@ -45,10 +56,14 @@ export default function Transfer() {
     setFile(f)
   }
 
-  const handleSubmit = async () => {
+  const handleContinue = () => {
+    navigate(`/confirmacion/${id}`)
+  }
+
+  const handleUpload = async () => {
 
     if (!file) {
-      setError("Debe adjuntar un comprobante.")
+      setError("Debe seleccionar un archivo.")
       return
     }
 
@@ -66,8 +81,6 @@ export default function Transfer() {
     setTimeout(() => setCopied(null), 1500)
   }
 
-  const canContinue = !!file
-
   // ================= UI =================
 
   return (
@@ -75,7 +88,7 @@ export default function Transfer() {
 
       <div className="max-w-6xl mx-auto px-4 py-6">
 
-        <ProcessHeader currentStep={3} />
+        <ProcessHeader currentStep={4} />
 
         {/* HEADER */}
         <div className="mb-6">
@@ -84,38 +97,73 @@ export default function Transfer() {
           </h1>
 
           <p className="text-sm md:text-base text-muted-foreground mt-2">
-            Realiza la transferencia y sube tu comprobante para validar tu pedido.
+            Tienes hasta 24 horas para realizar la transferencia. Luego puedes subir tu comprobante.
           </p>
         </div>
 
         {/* GRID */}
         <div className="grid lg:grid-cols-[1fr_360px] gap-6">
 
-          {/* ================= MAIN ================= */}
+          {/* MAIN */}
           <div className="space-y-4">
 
             {/* MONTO */}
             <div className="bg-white rounded-2xl border p-5 shadow-sm">
-
               <p className="text-xs text-muted-foreground mb-1">
                 Total a transferir
               </p>
 
               <p className="text-2xl md:text-3xl font-semibold text-[#4B2863]">
-                ${order.total.toLocaleString("es-CL")}
+                ${formatCLP(order.total)}
               </p>
 
               <p className="text-xs text-muted-foreground mt-1">
                 ID #{order.id}
               </p>
+            </div>
+
+            {/* DATOS BANCARIOS */}
+            <div className="bg-white rounded-2xl border p-5 shadow-sm space-y-4">
+
+              <p className="text-sm font-medium">
+                Datos bancarios
+              </p>
+
+              {[
+                ["Banco", "Banco Estado"],
+                ["Tipo", "Cuenta Corriente"],
+                ["Cuenta", "12345678"],
+                ["RUT", "12.345.678-9"],
+                ["Correo", "pagos@wemoguen.cl"]
+              ].map(([label, value]) => (
+
+                <div key={label} className="flex items-center justify-between">
+
+                  <div>
+                    <p className="text-muted-foreground text-xs">{label}</p>
+                    <p className="font-medium">{value}</p>
+                  </div>
+
+                  <button
+                    onClick={() => copy(value, label)}
+                    className="text-xs flex items-center gap-1 text-primary"
+                  >
+                    {copied === label
+                      ? <CheckCircle2 size={14} />
+                      : <Copy size={14} />}
+                  </button>
+
+                </div>
+
+              ))}
 
             </div>
 
-            {/* UPLOAD */}
+            {/* UPLOAD OPCIONAL */}
             <div className="bg-white rounded-2xl border p-5 shadow-sm space-y-3">
 
               <p className="text-sm font-medium">
-                Comprobante
+                Comprobante (opcional)
               </p>
 
               <label
@@ -142,7 +190,7 @@ export default function Transfer() {
                   <>
                     <Upload className="h-5 w-5 mb-2 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground text-center">
-                      Toca para subir comprobante
+                      Puedes subirlo ahora o después
                     </span>
                   </>
                 )}
@@ -159,7 +207,6 @@ export default function Transfer() {
 
               </label>
 
-              {/* ERROR */}
               {error && (
                 <div className="flex items-center gap-2 text-xs text-red-500">
                   <AlertCircle size={14} />
@@ -167,130 +214,79 @@ export default function Transfer() {
                 </div>
               )}
 
-              {/* BOTÓN PRINCIPAL */}
-              <button
-                onClick={handleSubmit}
-                disabled={!canContinue || isPending}
-                className={`
-                  w-full mt-3 py-3 rounded-xl font-medium transition
-                  ${!canContinue
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-[#4B2863] text-white hover:bg-[#3c1f4f]"}
-                `}
-              >
-                {isPending
-                  ? "Enviando..."
-                  : canContinue
-                    ? "Confirmar y continuar"
-                    : "Sube tu comprobante"}
-              </button>
-
               <p className="text-xs text-muted-foreground">
-                Formatos permitidos: PNG, JPG
+                Formatos: PNG, JPG
               </p>
 
-            </div>
+              {/* BOTONES */}
+              <div className="space-y-2 pt-2 sm:hidden">
 
-            {/* DATOS BANCARIOS */}
-            <details className="bg-white rounded-2xl border p-5 shadow-sm">
+                <button
+                  onClick={handleContinue}
+                  className="w-full py-3 rounded-xl font-medium bg-[#4B2863] text-white hover:bg-[#3c1f4f]"
+                >
+                  Continuar sin comprobante
+                </button>
 
-              <summary className="cursor-pointer font-medium text-sm">
-                Ver datos bancarios
-              </summary>
-
-              <div className="mt-4 space-y-4 text-sm">
-
-                {[
-                  ["Banco", "Banco Estado"],
-                  ["Tipo", "Cuenta Corriente"],
-                  ["Cuenta", "12345678"],
-                  ["RUT", "12.345.678-9"],
-                  ["Correo", "pagos@wemoguen.cl"]
-                ].map(([label, value]) => (
-
-                  <div key={label} className="flex items-center justify-between">
-
-                    <div>
-                      <p className="text-muted-foreground text-xs">{label}</p>
-                      <p className="font-medium">{value}</p>
-                    </div>
-
-                    <button
-                      onClick={() => copy(value, label)}
-                      className="text-xs flex items-center gap-1 text-primary"
-                    >
-                      {copied === label
-                        ? <CheckCircle2 size={14} />
-                        : <Copy size={14} />}
-                    </button>
-
-                  </div>
-
-                ))}
+                {file && (
+                  <button
+                    onClick={handleUpload}
+                    disabled={isPending}
+                    className="w-full py-3 rounded-xl font-medium border"
+                  >
+                    {isPending ? "Enviando..." : "Subir comprobante ahora"}
+                  </button>
+                )}
 
               </div>
 
-            </details>
+            </div>
 
             {/* INFO */}
             <div className="bg-[#4B2863]/5 border border-[#4B2863]/20 rounded-2xl p-4 text-xs text-muted-foreground">
-
-              Validación en hasta 24h hábiles.  
+              Tienes 24h para transferir.  
+              Si no se recibe el pago, el pedido será anulado automáticamente.  
               Usa el ID #{order.id} como referencia.
-
             </div>
 
           </div>
 
-          {/* SIDEBAR DESKTOP */}
+          {/* SIDEBAR */}
           <div className="hidden lg:block space-y-6">
-
             <div className="bg-white rounded-2xl border p-6 shadow-sm">
-
               <p className="text-sm text-muted-foreground mb-2">
                 Total a transferir
               </p>
 
               <p className="text-3xl font-semibold text-[#4B2863]">
-                ${order.total.toLocaleString("es-CL")}
+                ${formatCLP(order.total)}
               </p>
-
             </div>
-
           </div>
 
         </div>
 
       </div>
 
-      {/* CTA MOBILE */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg">
-
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-muted-foreground">
-            Total
-          </span>
-          <span className="font-semibold">
-            ${order.total.toLocaleString("es-CL")}
-          </span>
-        </div>
+      {/* MOBILE CTA */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg space-y-2">
 
         <button
-          onClick={handleSubmit}
-          disabled={!canContinue || isPending}
-          className={`
-            w-full py-3 rounded-xl font-medium transition
-            ${!canContinue
-              ? "bg-gray-300 text-gray-500"
-              : "bg-[#4B2863] text-white"}
-          `}
+          onClick={handleContinue}
+          className="w-full py-3 rounded-xl font-medium bg-[#4B2863] text-white"
         >
-          {isPending
-            ? "Enviando..."
-            : canContinue
-              ? "Confirmar y continuar"
-              : "Sube comprobante"}
+          Continuar sin comprobante
         </button>
+
+        {file && (
+          <button
+            onClick={handleUpload}
+            disabled={isPending}
+            className="w-full py-2 rounded-xl font-medium border"
+          >
+            {isPending ? "Enviando..." : "Subir comprobante"}
+          </button>
+        )}
 
       </div>
 

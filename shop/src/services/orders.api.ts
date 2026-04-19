@@ -8,6 +8,10 @@ import type {
 
 const LS_KEY = "wemoguen_mock_orders"
 
+/* =========================
+   STORAGE
+========================= */
+
 function loadOrders(): Record<string, OrderDetail> {
   try {
     const raw = localStorage.getItem(LS_KEY)
@@ -25,6 +29,10 @@ function makeId() {
   return `ORD-${Math.floor(100000 + Math.random() * 900000)}`
 }
 
+/* =========================
+   CREATE ORDER
+========================= */
+
 export async function createOrder(
   payload: CreateOrderPayload
 ): Promise<Order> {
@@ -33,40 +41,35 @@ export async function createOrder(
 
     await new Promise((r) => setTimeout(r, 600))
 
-    const catalog: Record<
-      number,
-      { name: string; price: number; image?: string }
-    > = {
-      1: { name: "Flor Medicinal Balanceada", price: 28000 },
-      2: { name: "Aceite CBD 30ml", price: 45000 },
-      3: { name: "Extracto THC/CBD", price: 52000 },
-      4: { name: "Vaporizador Médico", price: 89000 },
-    }
-
     const id = makeId()
 
-    const items = payload.items.map((it) => {
+    const items = payload.items.map((it) => ({
+      productId: it.productId,
+      name: it.name ?? `Producto ${it.productId}`,
+      image: it.image,
+      quantity: it.quantity,
 
-      const p = catalog[it.productId]
+      price: it.price,
+      basePrice: it.basePrice,
 
-      return {
-        productId: it.productId,
-        name: p?.name ?? `Producto ${it.productId}`,
-        image: p?.image,
-        quantity: it.quantity,
-        price: p?.price ?? 10000,
-        priceAtPurchase: p?.price ?? 10000,
-      }
-    })
+      discountPercentage: it.discountPercentage,
+
+      priceAtPurchase: it.price
+    }))
 
     const subtotal = items.reduce(
       (acc, it) => acc + it.price * it.quantity,
       0
     )
 
-    const shipping = 0
-    const discount = 0
-    const total = subtotal + shipping - discount
+    let discount = 0
+
+    if (payload.coupon === "WE10") {
+      discount = subtotal * 0.1
+    }
+
+    const shipping = subtotal >= 50000 ? 0 : 3500
+    const total = Math.max(subtotal - discount + shipping, 0)
 
     const orderDetail: OrderDetail = {
       id,
@@ -82,29 +85,21 @@ export async function createOrder(
     }
 
     const db = loadOrders()
-
     db[id] = orderDetail
-
     saveOrders(db)
 
-    const order: Order = {
-      id: orderDetail.id,
-      status: orderDetail.status,
-      subtotal,
-      shipping,
-      discount,
-      total,
-      createdAt: orderDetail.createdAt,
-      items,
+    return {
+      ...orderDetail
     }
-
-    return order
   }
 
   const { data } = await api.post("/pedidos", payload)
-
   return data
 }
+
+/* =========================
+   GET ORDER BY ID
+========================= */
 
 export async function getOrderById(
   id: string
@@ -112,25 +107,28 @@ export async function getOrderById(
 
   if (env.MOCK_API) {
 
-    await new Promise((r) => setTimeout(r, 400))
+    await new Promise((r) => setTimeout(r, 300))
 
     const db = loadOrders()
+    const order = db[id]
 
-    const found = db[id]
-
-    if (!found) {
+    if (!order) {
       throw {
         response: { data: { message: "Orden no encontrada." } },
       }
     }
 
-    return found
+    // ✔ devolver copia (evita mutaciones externas)
+    return JSON.parse(JSON.stringify(order))
   }
 
   const { data } = await api.get(`/pedidos/${id}`)
-
   return data
 }
+
+/* =========================
+   UPLOAD RECEIPT
+========================= */
 
 export async function uploadReceipt(
   id: string,
@@ -142,7 +140,6 @@ export async function uploadReceipt(
     await new Promise((r) => setTimeout(r, 800))
 
     const db = loadOrders()
-
     const order = db[id]
 
     if (!order) {
@@ -151,19 +148,20 @@ export async function uploadReceipt(
       }
     }
 
-    order.status = "WAITING_APPROVAL"
+    // ✔ CLONAR (no mutar directo)
+    const updated: OrderDetail = {
+      ...order,
+      status: "WAITING_APPROVAL",
+      receiptUrl: URL.createObjectURL(file)
+    }
 
-    order.receiptUrl = URL.createObjectURL(file)
-
-    db[id] = order
-
+    db[id] = updated
     saveOrders(db)
 
     return
   }
 
   const formData = new FormData()
-
   formData.append("receipt", file)
 
   await api.post(`/pedidos/${id}/receipt`, formData, {
@@ -171,11 +169,15 @@ export async function uploadReceipt(
   })
 }
 
+/* =========================
+   GET MY ORDERS
+========================= */
+
 export async function getMyOrders(): Promise<Order[]> {
 
   if (env.MOCK_API) {
 
-    await new Promise((r) => setTimeout(r, 400))
+    await new Promise((r) => setTimeout(r, 300))
 
     const db = loadOrders()
 
@@ -194,10 +196,10 @@ export async function getMyOrders(): Promise<Order[]> {
         total: order.total,
         createdAt: order.createdAt,
         items: order.items,
+        receiptUrl: order.receiptUrl
       }))
   }
 
   const { data } = await api.get("/pedidos/me")
-
   return data
 }

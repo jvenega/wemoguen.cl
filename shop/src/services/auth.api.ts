@@ -108,7 +108,7 @@ export async function getMe(): Promise<User> {
     const stored = localStorage.getItem("auth-storage");
 
     if (!stored) {
-      throw new Error("No session");
+      return null as any;
     }
 
     const parsed = JSON.parse(stored);

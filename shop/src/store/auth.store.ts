@@ -101,9 +101,30 @@ export const useAuthStore = create<AuthState>()(
          REHYDRATION CONTROL (FIX)
       ========================= */
       onRehydrateStorage: () => (state) => {
-        if (!state) return
+        // fallback SI NO SE EJECUTA CORRECTO
+        setTimeout(() => {
+          const current = useAuthStore.getState()
 
-        const isValid = state.accessToken && state.user
+          if (!current.hasHydrated) {
+            useAuthStore.setState({
+              isLoading: false,
+              hasHydrated: true,
+            })
+          }
+        }, 100)
+
+        if (!state) {
+          useAuthStore.setState({
+            isLoading: false,
+            hasHydrated: true,
+          })
+          return
+        }
+
+        const isValid =
+          state.accessToken &&
+          state.user &&
+          state.user.role
 
         if (!isValid) {
           useAuthStore.setState({
@@ -116,14 +137,13 @@ export const useAuthStore = create<AuthState>()(
           return
         }
 
-        // restaurar header correctamente
         setAuthHeader(state.accessToken)
 
         useAuthStore.setState({
           isLoading: false,
           hasHydrated: true,
         })
-      },
+      }
     }
   )
 )

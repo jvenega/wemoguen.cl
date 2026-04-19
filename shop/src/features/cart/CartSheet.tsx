@@ -35,7 +35,7 @@ export default function CartSheet({ children }: any) {
 
           {items.map((item) => (
             <div
-              key={item.id}
+              key={item.productId}
               className="flex justify-between items-center border-b pb-3"
             >
               <div>
@@ -48,7 +48,8 @@ export default function CartSheet({ children }: any) {
               <div className="text-right">
                 <p>${(item.price * item.quantity).toLocaleString()}</p>
                 <button
-                  onClick={() => removeItem(item.id)}
+                  title="Quitar del carrito"
+                  onClick={() => removeItem(item.productId)}
                   className="text-xs text-red-500"
                 >
                   Quitar

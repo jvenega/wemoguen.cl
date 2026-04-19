@@ -1,4 +1,5 @@
 import { useParams, Navigate, Link } from "react-router-dom"
+import { useEffect } from "react"
 import ProcessHeader from "@/components/checkout/ProcessHeader"
 import { useOrder } from "@/hooks/orders.hook"
 
@@ -7,7 +8,8 @@ import {
   Package,
   ArrowRight,
   Clock,
-  Upload
+  Upload,
+  AlertCircle
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -15,6 +17,16 @@ import { Button } from "@/components/ui/button"
 export default function Confirmation() {
 
   const { id } = useParams()
+
+  // 🔒 Lock scroll en mobile
+  useEffect(() => {
+    const isMobile = window.innerWidth < 1024
+    if (isMobile) document.body.style.overflow = "hidden"
+
+    return () => {
+      document.body.style.overflow = "auto"
+    }
+  }, [])
 
   if (!id) return <Navigate to="/" replace />
 
@@ -50,20 +62,6 @@ export default function Confirmation() {
   const isPendingPayment = order.status === "PENDING_PAYMENT"
   const isWaitingApproval = order.status === "WAITING_APPROVAL"
 
-  // ================= UI TEXT =================
-
-  const title = isPendingPayment
-    ? "Pedido creado"
-    : isWaitingApproval
-      ? "Pago enviado"
-      : "Pedido registrado"
-
-  const description = isPendingPayment
-    ? "Tienes 24 horas para realizar la transferencia. Luego puedes subir tu comprobante."
-    : isWaitingApproval
-      ? "Recibimos tu comprobante. Estamos validando tu pago."
-      : "Tu pedido está siendo procesado."
-
   const Icon = isPendingPayment ? Clock : CheckCircle2
   const iconStyle = isPendingPayment
     ? "bg-yellow-100 text-yellow-600"
@@ -72,45 +70,36 @@ export default function Confirmation() {
   // ================= UI =================
 
   return (
-    <div className="bg-[#f6f4f9] min-h-screen pb-24">
+    <div className="bg-[#f6f4f9] h-screen lg:min-h-screen flex flex-col">
 
-      <div className="max-w-3xl mx-auto px-4 py-6 md:py-16">
+      {/* SCROLL INTERNO */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 md:py-16 pb-32 lg:pb-0">
 
-        <ProcessHeader currentStep={5} />
+        <div className="max-w-3xl mx-auto">
 
-        <div className="bg-white rounded-2xl md:rounded-3xl border p-5 md:p-12 shadow-sm text-center">
+          <ProcessHeader currentStep={5} />
 
-          {/* HEADER */}
-          <div className="flex flex-col items-center gap-3 mb-5">
+          {/* CARD */}
+          <div className="bg-white rounded-2xl md:rounded-3xl border p-5 md:p-10 shadow-sm">
 
-            <div className={`${iconStyle} rounded-full p-3`}>
-              <Icon className="h-6 w-6" />
-            </div>
+            {/* HEADER ROW */}
+            <div className="flex items-center justify-between mb-4">
 
-            <h1 className="text-lg md:text-3xl font-semibold text-[#4B2863]">
-              {title}
-            </h1>
+              <h1 className="text-lg md:text-2xl font-semibold text-[#4B2863]">
+                Pedido <span className="font-bold">#{order.id}</span>
+              </h1>
 
-            <p className="text-xs md:text-base text-muted-foreground max-w-sm">
-              {description}
-            </p>
-
-          </div>
-
-          {/* STATUS */}
-          <div className="bg-[#4B2863]/5 border border-[#4B2863]/20 rounded-xl p-4 mb-5">
-
-            <div className="flex flex-col gap-3 text-sm">
-
-              <div className="flex justify-between">
-                <span className="text-muted-foreground text-xs">ID</span>
-                <span className="font-semibold text-[#4B2863]">
-                  #{order.id}
-                </span>
+              <div className={`${iconStyle} rounded-full p-2`}>
+                <Icon className="h-5 w-5" />
               </div>
 
+            </div>
+
+            {/* STATUS + MONTO */}
+            <div className="flex flex-col gap-3 mb-5 text-sm">
+
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground text-xs">Estado</span>
+                <span className="text-muted-foreground">Estado</span>
 
                 <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] bg-yellow-100 text-yellow-700">
                   <Clock size={12} />
@@ -118,8 +107,9 @@ export default function Confirmation() {
                 </span>
               </div>
 
-              <div className="flex justify-between">
-                <span className="text-muted-foreground text-xs">Total</span>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Monto</span>
+
                 <span className="font-semibold text-[#4B2863]">
                   ${formatCLP(order.total)}
                 </span>
@@ -127,52 +117,62 @@ export default function Confirmation() {
 
             </div>
 
-          </div>
+            {/* INFO */}
+            <div className="flex items-start gap-2 text-xs text-muted-foreground mb-6">
 
-          {/* BLOQUE CONDICIONAL */}
-          {isPendingPayment && (
-            <div className="mb-6">
+              <AlertCircle size={14} className="mt-0.5" />
 
-              <div className="text-xs text-muted-foreground mb-4 leading-relaxed">
-                Recuerda usar el ID #{order.id} como referencia en la transferencia.
-              </div>
+              <p className="leading-relaxed">
+                {isPendingPayment
+                  ? `Tienes 24h para transferir usando el ID #${order.id}. Luego sube tu comprobante.`
+                  : "Estamos procesando tu pedido. Te notificaremos cuando avance."}
+              </p>
+
+            </div>
+
+            {/* DESKTOP: SUBIR COMPROBANTE */}
+
+
+            {/* CTA DESKTOP */}
+            <div className="hidden lg:flex gap-3 justify-center">
+
+              {/* VERIFICAR CON CASE LOS 3 ESTADOS */}
+
+              {isWaitingApproval && (
+                <Button asChild className="bg-[#4B2863] text-white">
+                  <Link to={`/pedidos/${order.id}`} className="flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    Ver estado del pedido
+                  </Link>
+                </Button>
+              )}
+
+
+              {isPendingPayment && (
+                <Button asChild className="bg-[#4B2863] text-white">
+                  <Link to={`/checkout/payment/${order.id}`} className="flex items-center gap-2">
+                    <Upload className="h-4 w-4" />
+                    Subir comprobante
+                  </Link>
+                </Button>
+              )
+              }
+
+              <Button asChild variant="outline">
+                <Link to="/pedidos" className="flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Ver pedidos
+                </Link>
+              </Button>
 
               <Button asChild className="bg-[#4B2863] text-white">
-                <Link to={`/transferencia/${order.id}`} className="flex items-center gap-2">
-                  <Upload className="h-4 w-4" />
-                  Subir comprobante
+                <Link to="/" className="flex items-center gap-2">
+                  Seguir comprando
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
 
             </div>
-          )}
-
-          {!isPendingPayment && (
-            <div className="text-xs text-muted-foreground mb-6 leading-relaxed">
-              Validación en hasta <strong>24h hábiles</strong>.  
-              Te notificaremos cuando esté aprobado.
-            </div>
-          )}
-
-          {/* CTA DESKTOP */}
-          <div className="hidden sm:flex flex-row gap-3 justify-center">
-
-            <Button asChild variant="outline">
-              <Link to="/pedidos" className="flex items-center gap-2">
-                <Package className="h-4 w-4" />
-                Ver pedidos
-              </Link>
-            </Button>
-
-            <Button
-              asChild
-              className="bg-[#4B2863] hover:bg-[#3c1f4f] text-white"
-            >
-              <Link to="/" className="flex items-center gap-2">
-                Seguir comprando
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
 
           </div>
 
@@ -181,26 +181,29 @@ export default function Confirmation() {
       </div>
 
       {/* CTA MOBILE */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg">
+      <div className="lg:hidden sticky bottom-0 bg-white border-t p-4 shadow-lg pb-[env(safe-area-inset-bottom)]">
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
 
           {isPendingPayment && (
-            <Button asChild className="w-full bg-[#4B2863] text-white">
-              <Link to={`/transferencia/${order.id}`}>
+            <Button asChild className="w-full bg-[#4B2863] text-white py-3">
+              <Link to={`/checkout/payment/${order.id}`} className="flex items-center justify-center gap-2">
+                <Upload className="h-4 w-4" />
                 Subir comprobante
               </Link>
             </Button>
           )}
 
-          <Button asChild className="w-full bg-[#4B2863] text-white">
-            <Link to="/pedidos">
+          <Button asChild variant="outline" className="w-full py-3">
+            <Link to="/pedidos" className="flex items-center justify-center gap-2">
+              <Package className="h-4 w-4" />
               Ver estado del pedido
             </Link>
           </Button>
 
-          <Button asChild variant="outline" className="w-full">
-            <Link to="/">
+          <Button asChild variant="ghost" className="w-full text-muted-foreground">
+            <Link to="/" className="flex items-center justify-center gap-2">
+              <ArrowRight className="h-4 w-4" />
               Seguir comprando
             </Link>
           </Button>

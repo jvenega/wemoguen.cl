@@ -44,12 +44,15 @@ export default function AppRouter() {
         <Route path="/" element={<App />}>
           <Route index element={<Home />} />
 
+          {/* PASO 1  */}
           <Route path="carrito" element={<Cart />} />
-          <Route path="checkout" element={<Checkout />} />
-          <Route path="checkout/review" element={<CheckoutReview />} />
-
-          <Route path="transferencia/:id" element={<Transfer />} />
-          <Route path="confirmacion/:id" element={<Confirmation />} />
+          {/* PASO 2 */}
+          <Route path="checkout">
+            <Route index element={<Checkout />} />                 {/* Paso 2 */}
+            <Route path="review" element={<CheckoutReview />} />   {/* Paso 3 */}
+            <Route path="payment/:id" element={<Transfer />} />    {/* Paso 4 */}
+            <Route path="success/:id" element={<Confirmation />} /> {/* Paso 5 */}
+          </Route>
 
           <Route path="profile" element={<Profile />} />
           <Route path="pedidos" element={<Orders />} />

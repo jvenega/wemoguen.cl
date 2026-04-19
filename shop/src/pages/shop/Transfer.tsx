@@ -1,7 +1,9 @@
 import ProcessHeader from "@/components/checkout/ProcessHeader"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useParams, Navigate, useNavigate } from "react-router-dom"
 import { useOrder, useUploadReceipt } from "@/hooks/orders.hook"
+import { useCartStore } from "@/store/cart.store"
+
 import {
   Upload,
   CheckCircle2,
@@ -15,6 +17,7 @@ export default function Transfer() {
 
   const { id } = useParams()
   const navigate = useNavigate()
+  const clearCart = useCartStore(s => s.clearCart)
 
   if (!id) return <Navigate to="/carrito" replace />
 
@@ -24,6 +27,11 @@ export default function Transfer() {
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
+
+  // ✅ LIMPIAR CARRITO AQUÍ (correcto)
+  useEffect(() => {
+    clearCart()
+  }, [])
 
   // ================= STATES =================
 
@@ -43,7 +51,6 @@ export default function Transfer() {
   // ================= HANDLERS =================
 
   const handleFileChange = (f: File | null) => {
-
     if (!f) return
 
     if (!ALLOWED_TYPES.includes(f.type)) {
@@ -57,11 +64,11 @@ export default function Transfer() {
   }
 
   const handleContinue = () => {
-    navigate(`/confirmacion/${id}`)
+    // 🔥 NUEVA RUTA
+    navigate(`/checkout/success/${id}`)
   }
 
   const handleUpload = async () => {
-
     if (!file) {
       setError("Debe seleccionar un archivo.")
       return
@@ -69,7 +76,7 @@ export default function Transfer() {
 
     try {
       await mutateAsync({ id, file })
-      navigate(`/confirmacion/${id}`)
+      navigate(`/checkout/success/${id}`)
     } catch {
       setError("Error al subir comprobante.")
     }
@@ -159,7 +166,7 @@ export default function Transfer() {
 
             </div>
 
-            {/* UPLOAD OPCIONAL */}
+            {/* UPLOAD */}
             <div className="bg-white rounded-2xl border p-5 shadow-sm space-y-3">
 
               <p className="text-sm font-medium">
@@ -218,12 +225,12 @@ export default function Transfer() {
                 Formatos: PNG, JPG
               </p>
 
-              {/* BOTONES */}
-              <div className="space-y-2 pt-2 sm:hidden">
+              {/* ✅ CTA DESKTOP */}
+              <div className="hidden lg:flex gap-2 pt-2">
 
                 <button
                   onClick={handleContinue}
-                  className="w-full py-3 rounded-xl font-medium bg-[#4B2863] text-white hover:bg-[#3c1f4f]"
+                  className="flex-1 py-3 rounded-xl font-medium bg-[#4B2863] text-white"
                 >
                   Continuar sin comprobante
                 </button>
@@ -232,21 +239,14 @@ export default function Transfer() {
                   <button
                     onClick={handleUpload}
                     disabled={isPending}
-                    className="w-full py-3 rounded-xl font-medium border"
+                    className="flex-1 py-3 rounded-xl font-medium border"
                   >
-                    {isPending ? "Enviando..." : "Subir comprobante ahora"}
+                    {isPending ? "Enviando..." : "Subir comprobante"}
                   </button>
                 )}
 
               </div>
 
-            </div>
-
-            {/* INFO */}
-            <div className="bg-[#4B2863]/5 border border-[#4B2863]/20 rounded-2xl p-4 text-xs text-muted-foreground">
-              Tienes 24h para transferir.  
-              Si no se recibe el pago, el pedido será anulado automáticamente.  
-              Usa el ID #{order.id} como referencia.
             </div>
 
           </div>

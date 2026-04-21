@@ -43,7 +43,7 @@ export default function DocumentsSection() {
   const user = useAuthStore((s) => s.user)
   const email = user?.email ?? ""
 
-  const { folders: backendFolders } = useDocuments(email)
+  const { folders: backendFolders, uploadDocument } = useDocuments(email)
 
   const [files, setFiles] = useState<Record<string, File | null>>({})
   const [activeFolder, setActiveFolder] = useState<string | null>(null)
@@ -138,13 +138,15 @@ export default function DocumentsSection() {
     fileRef.current?.click()
   }
 
-  const handleFileChange = (file: File | null) => {
-    if (!file || !selectedDoc) return
+  const handleFileChange = async (file: File | null) => {
+    if (!file || !selectedDoc || !activeFolder) return
 
     setFiles((prev) => ({
       ...prev,
       [selectedDoc]: file,
     }))
+
+    await uploadDocument(file, activeFolder, selectedDoc)
   }
 
   const handleSubmit = async () => {

@@ -1,5 +1,9 @@
 export type Role = "ADMIN" | "PATIENT";
 
+export function getDefaultRouteByRole(role: Role) {
+  return role === "ADMIN" ? "/admin" : "/"
+}
+
 export interface User {
   id: string;
   fullName: string;

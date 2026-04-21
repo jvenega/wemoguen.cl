@@ -1,9 +1,5 @@
 import rawData from "../mock/documents.json"
 
-/* =========================
-   TYPES
-========================= */
-
 export type DocumentType = "image" | "pdf"
 
 export type Document = {
@@ -29,15 +25,7 @@ type DocumentsDB = {
   users: UserDocuments[]
 }
 
-/* =========================
-   STORAGE
-========================= */
-
 const STORAGE_KEY = "documents_db"
-
-/* =========================
-   CORE DB
-========================= */
 
 function readDB(): DocumentsDB {
   const raw = localStorage.getItem(STORAGE_KEY)
@@ -49,7 +37,6 @@ function readDB(): DocumentsDB {
   try {
     return JSON.parse(raw) as DocumentsDB
   } catch {
-    // corrupción → reset
     return seedDB()
   }
 }
@@ -57,10 +44,6 @@ function readDB(): DocumentsDB {
 function writeDB(db: DocumentsDB) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(db))
 }
-
-/* =========================
-   SEED (IMPORTANTE)
-========================= */
 
 export function seedDB(force = false): DocumentsDB {
   if (!force) {
@@ -73,43 +56,41 @@ export function seedDB(force = false): DocumentsDB {
   return db
 }
 
-/* =========================
-   HELPERS
-========================= */
-
 function findUser(db: DocumentsDB, email: string) {
-  return db.users.find((u) => u.email === email)
+  return db.users.find((user) => user.email === email)
 }
 
 function ensureUser(db: DocumentsDB, email: string): UserDocuments {
-  let user = findUser(db, email)
+  const existing = findUser(db, email)
+  if (existing) return existing
 
-  if (!user) {
-    user = { email, folders: [] }
-    db.users.push(user)
-  }
-
+  const user = { email, folders: [] }
+  db.users.push(user)
   return user
 }
 
 function ensureFolder(user: UserDocuments, folderId: string): FolderType {
-  let folder = user.folders.find((f) => f.id === folderId)
+  const existing = user.folders.find((folder) => folder.id === folderId)
+  if (existing) return existing
 
-  if (!folder) {
-    folder = {
-      id: folderId,
-      name: "Nueva carpeta",
-      documents: [],
-    }
-    user.folders.push(folder)
+  const folder = {
+    id: folderId,
+    name: "Nueva carpeta",
+    documents: [],
   }
 
+  user.folders.push(folder)
   return folder
 }
 
-/* =========================
-   PUBLIC API
-========================= */
+function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(reader.error ?? new Error("No se pudo leer el archivo"))
+    reader.readAsDataURL(file)
+  })
+}
 
 export function getUserDocuments(email: string): FolderType[] {
   if (!email) return []
@@ -122,39 +103,31 @@ export function getUserDocuments(email: string): FolderType[] {
   return user.folders
 }
 
-/* =========================
-   UPSERT DOCUMENT
-========================= */
-
-export function upsertUserDocument(
+export async function upsertUserDocument(
   email: string,
   folderId: string,
   docId: string,
   file: File
 ) {
   const db = readDB()
-
   const user = ensureUser(db, email)
   const folder = ensureFolder(user, folderId)
+  const existingDoc = folder.documents.find((document) => document.id === docId)
 
-  const existingDoc = folder.documents.find((d) => d.id === docId)
-
-  const url = URL.createObjectURL(file)
-
-  const newDoc: Document = {
+  const nextDoc: Document = {
     id: docId,
-    name: existingDoc?.name ?? "Documento",
-    type: existingDoc?.type ?? "image",
-    url,
+    name: existingDoc?.name ?? file.name,
+    type: file.type === "application/pdf" ? "pdf" : "image",
+    url: await fileToDataUrl(file),
     expiresAt: new Date(
       Date.now() + 1000 * 60 * 60 * 24 * 365
     ).toISOString(),
   }
 
   if (existingDoc) {
-    Object.assign(existingDoc, newDoc)
+    Object.assign(existingDoc, nextDoc)
   } else {
-    folder.documents.push(newDoc)
+    folder.documents.push(nextDoc)
   }
 
   writeDB(db)

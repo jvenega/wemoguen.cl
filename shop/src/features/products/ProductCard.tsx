@@ -12,6 +12,9 @@ interface Props {
 export default function ProductCard({ product }: Props) {
 
   const addItem = useCartStore(s => s.addItem)
+  const existingItem = useCartStore(
+    s => s.items.find(item => item.productId === product.id)
+  )
 
   const discount = product.discountPercentage ?? 0
   const hasDiscount = discount > 0
@@ -39,6 +42,12 @@ export default function ProductCard({ product }: Props) {
           {hasDiscount && (
             <div className="absolute top-2 right-2 bg-red-500 text-white text-[11px] px-2 py-0.5 rounded-full shadow">
               -{discount}%
+            </div>
+          )}
+
+          {existingItem && (
+            <div className="absolute left-2 top-2 rounded-full bg-[#4B2863] px-2.5 py-1 text-[11px] font-medium text-white shadow">
+              En carrito x{existingItem.quantity}
             </div>
           )}
 
@@ -73,7 +82,7 @@ export default function ProductCard({ product }: Props) {
             className="cursor-pointer text-amber-50 w-full mt-3 text-xs md:text-sm flex items-center justify-center gap-2 bg-[#4B2863] hover:bg-[#3c1f4f] transition"
           >
             <ShoppingCart className="h-4 w-4" />
-            Solicitar
+            {existingItem ? "Agregar otra unidad" : "Solicitar"}
           </Button>
 
         </div>

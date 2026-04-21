@@ -1,8 +1,9 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/store/auth.store";
+import { getDefaultRouteByRole, type Role } from "@/types/auth.types";
 
 type Props = {
-  role?: "ADMIN" | "USER";
+  role?: Role;
   redirectTo?: string;
 };
 
@@ -46,11 +47,7 @@ export default function ProtectedRoute({
      3. CONTROL DE ROLES
   ========================= */
   if (role && user.role !== role) {
-    if (user.role === "ADMIN") {
-      return <Navigate to="/admin" replace />;
-    }
-
-    return <Navigate to="/" replace />;
+    return <Navigate to={getDefaultRouteByRole(user.role)} replace />;
   }
 
   /* =========================

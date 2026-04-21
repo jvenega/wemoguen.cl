@@ -43,7 +43,7 @@ function RouteProgressBar() {
 
   return (
     <div
-      className="fixed top-0 left-0 h-0.5 bg-purple-400 z-999 transition-all duration-300"
+      className="fixed top-0 left-0 h-0.5 bg-purple-400 z-[999] transition-all duration-300"
       style={{ width: `${progress}%` }}
     />
   )
@@ -84,7 +84,8 @@ export default function NavbarPremium() {
   )
 
   const isActive = (path: string) =>
-    location.pathname === path
+    location.pathname === path ||
+    (path !== "/" && location.pathname.startsWith(`${path}/`))
       ? "text-white font-semibold"
       : "text-white/60 hover:text-white"
 

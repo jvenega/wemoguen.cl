@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom"
 import { useAuthStore } from "@/store/auth.store"
+import { getDefaultRouteByRole } from "@/types/auth.types"
 
 export default function PublicOnlyRoute() {
   const location = useLocation()
@@ -31,11 +32,7 @@ export default function PublicOnlyRoute() {
       return <Navigate to={from} replace />
     }
 
-    if (user.role === "ADMIN") {
-      return <Navigate to="/admin" replace />
-    }
-
-    return <Navigate to="/" replace />
+    return <Navigate to={getDefaultRouteByRole(user.role)} replace />
   }
 
   /* =========================

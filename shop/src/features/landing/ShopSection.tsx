@@ -71,6 +71,21 @@ export default function ShopSection({ category, setCategory }: Props) {
   const visibleProducts = filteredProducts.slice(0, visible)
   const hasMore = visible < filteredProducts.length
 
+  const handleCategoryChange = (value: string) => {
+    setCategory(value)
+    setVisible(PAGE_SIZE)
+  }
+
+  const handleSortChange = (value: string) => {
+    setSort(value)
+    setVisible(PAGE_SIZE)
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    setVisible(PAGE_SIZE)
+  }
+
   return (
     <section id="shop" className="max-w-7xl mx-auto px-6 pt-12 pb-20">
 
@@ -102,11 +117,11 @@ export default function ShopSection({ category, setCategory }: Props) {
         <div className="hidden md:block sticky top-24 self-start">
           <ProductFilters
             category={category}
-            setCategory={setCategory}
+            setCategory={handleCategoryChange}
             sort={sort}
-            setSort={setSort}
+            setSort={handleSortChange}
             search={search}
-            setSearch={setSearch}
+            setSearch={handleSearchChange}
           />
         </div>
 
@@ -121,17 +136,41 @@ export default function ShopSection({ category, setCategory }: Props) {
             >
               <ProductFilters
                 category={category}
-                setCategory={setCategory}
+                setCategory={handleCategoryChange}
                 sort={sort}
-                setSort={setSort}
+                setSort={handleSortChange}
                 search={search}
-                setSearch={setSearch}
+                setSearch={handleSearchChange}
               />
             </motion.div>
           )}
         </AnimatePresence>
 
         <div>
+          {filteredProducts.length === 0 && (
+            <div className="rounded-[2rem] border border-dashed border-[#d9cade] bg-white/80 p-10 text-center shadow-sm">
+              <p className="text-sm uppercase tracking-[0.25em] text-[#8e7b99]">
+                Sin Resultados
+              </p>
+              <h3 className="mt-3 text-2xl font-semibold text-[#4B2863]">
+                No encontramos productos para ese filtro.
+              </h3>
+              <p className="mt-2 text-sm text-[#75697d]">
+                Prueba otra categoria o limpia la busqueda para volver a ver el catalogo completo.
+              </p>
+              <Button
+                variant="outline"
+                className="mt-5"
+                onClick={() => {
+                  handleCategoryChange("all")
+                  handleSearchChange("")
+                  handleSortChange("default")
+                }}
+              >
+                Limpiar filtros
+              </Button>
+            </div>
+          )}
 
           <motion.div
             variants={containerVariants}

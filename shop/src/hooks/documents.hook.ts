@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   getUserDocuments,
   upsertUserDocument,
@@ -10,12 +10,16 @@ export function useDocuments(email: string) {
     getUserDocuments(email)
   )
 
-  const uploadDocument = (
+  useEffect(() => {
+    setFolders(getUserDocuments(email))
+  }, [email])
+
+  const uploadDocument = async (
     file: File,
     folderId: string,
     docId: string
   ) => {
-    upsertUserDocument(email, folderId, docId, file)
+    await upsertUserDocument(email, folderId, docId, file)
     setFolders(getUserDocuments(email))
   }
 

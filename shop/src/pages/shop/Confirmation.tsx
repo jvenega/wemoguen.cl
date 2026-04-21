@@ -1,24 +1,23 @@
-import { useParams, Navigate, Link } from "react-router-dom"
 import { useEffect } from "react"
+import { Link, Navigate, useParams } from "react-router-dom"
+import {
+  AlertCircle,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  Package,
+  Upload,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
 import ProcessHeader from "@/components/checkout/ProcessHeader"
 import { useOrder } from "@/hooks/orders.hook"
-
-import {
-  CheckCircle2,
-  Package,
-  ArrowRight,
-  Clock,
-  Upload,
-  AlertCircle
-} from "lucide-react"
-
-import { Button } from "@/components/ui/button"
+import { useCartStore } from "@/store/cart.store"
 
 export default function Confirmation() {
-
   const { id } = useParams()
+  const clearCart = useCartStore((state) => state.clearCart)
+  const orderId = id ?? ""
 
-  // 🔒 Lock scroll en mobile
   useEffect(() => {
     const isMobile = window.innerWidth < 1024
     if (isMobile) document.body.style.overflow = "hidden"
@@ -28,9 +27,14 @@ export default function Confirmation() {
     }
   }, [])
 
-  if (!id) return <Navigate to="/" replace />
+  const { data: order, isLoading, isError } = useOrder(orderId)
 
-  const { data: order, isLoading, isError } = useOrder(id)
+  useEffect(() => {
+    if (!order) return
+    clearCart()
+  }, [clearCart, order])
+
+  if (!id) return <Navigate to="/" replace />
 
   if (isLoading) {
     return (
@@ -44,21 +48,17 @@ export default function Confirmation() {
     return <Navigate to="/" replace />
   }
 
-  // ================= HELPERS =================
-
-  const formatCLP = (n: number) =>
-    n.toLocaleString("es-CL")
+  const formatCLP = (n: number) => n.toLocaleString("es-CL")
 
   const statusMap: Record<string, string> = {
     PENDING_PAYMENT: "Pendiente de pago",
-    WAITING_APPROVAL: "En validación",
+    WAITING_APPROVAL: "En validacion",
     PROCESSING: "En proceso",
     APPROVED: "Aprobado",
-    REJECTED: "Rechazado"
+    REJECTED: "Rechazado",
   }
 
   const statusLabel = statusMap[order.status] ?? order.status
-
   const isPendingPayment = order.status === "PENDING_PAYMENT"
   const isWaitingApproval = order.status === "WAITING_APPROVAL"
 
@@ -67,24 +67,14 @@ export default function Confirmation() {
     ? "bg-yellow-100 text-yellow-600"
     : "bg-green-100 text-green-600"
 
-  // ================= UI =================
-
   return (
     <div className="bg-[#f6f4f9] h-screen lg:min-h-screen flex flex-col">
-
-      {/* SCROLL INTERNO */}
       <div className="flex-1 overflow-y-auto px-4 py-4 md:py-16 pb-32 lg:pb-0">
-
         <div className="max-w-3xl mx-auto">
-
           <ProcessHeader currentStep={5} />
 
-          {/* CARD */}
           <div className="bg-white rounded-2xl md:rounded-3xl border p-5 md:p-10 shadow-sm">
-
-            {/* HEADER ROW */}
             <div className="flex items-center justify-between mb-4">
-
               <h1 className="text-lg md:text-2xl font-semibold text-[#4B2863]">
                 Pedido <span className="font-bold">#{order.id}</span>
               </h1>
@@ -92,12 +82,9 @@ export default function Confirmation() {
               <div className={`${iconStyle} rounded-full p-2`}>
                 <Icon className="h-5 w-5" />
               </div>
-
             </div>
 
-            {/* STATUS + MONTO */}
             <div className="flex flex-col gap-3 mb-5 text-sm">
-
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Estado</span>
 
@@ -114,12 +101,9 @@ export default function Confirmation() {
                   ${formatCLP(order.total)}
                 </span>
               </div>
-
             </div>
 
-            {/* INFO */}
             <div className="flex items-start gap-2 text-xs text-muted-foreground mb-6">
-
               <AlertCircle size={14} className="mt-0.5" />
 
               <p className="leading-relaxed">
@@ -127,17 +111,9 @@ export default function Confirmation() {
                   ? `Tienes 24h para transferir usando el ID #${order.id}. Luego sube tu comprobante.`
                   : "Estamos procesando tu pedido. Te notificaremos cuando avance."}
               </p>
-
             </div>
 
-            {/* DESKTOP: SUBIR COMPROBANTE */}
-
-
-            {/* CTA DESKTOP */}
             <div className="hidden lg:flex gap-3 justify-center">
-
-              {/* VERIFICAR CON CASE LOS 3 ESTADOS */}
-
               {isWaitingApproval && (
                 <Button asChild className="bg-[#4B2863] text-white">
                   <Link to={`/pedidos/${order.id}`} className="flex items-center gap-2">
@@ -147,7 +123,6 @@ export default function Confirmation() {
                 </Button>
               )}
 
-
               {isPendingPayment && (
                 <Button asChild className="bg-[#4B2863] text-white">
                   <Link to={`/checkout/payment/${order.id}`} className="flex items-center gap-2">
@@ -155,8 +130,7 @@ export default function Confirmation() {
                     Subir comprobante
                   </Link>
                 </Button>
-              )
-              }
+              )}
 
               <Button asChild variant="outline">
                 <Link to="/pedidos" className="flex items-center gap-2">
@@ -171,20 +145,13 @@ export default function Confirmation() {
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-
             </div>
-
           </div>
-
         </div>
-
       </div>
 
-      {/* CTA MOBILE */}
       <div className="lg:hidden sticky bottom-0 bg-white border-t p-4 shadow-lg pb-[env(safe-area-inset-bottom)]">
-
         <div className="flex flex-col gap-3">
-
           {isPendingPayment && (
             <Button asChild className="w-full bg-[#4B2863] text-white py-3">
               <Link to={`/checkout/payment/${order.id}`} className="flex items-center justify-center gap-2">
@@ -207,11 +174,8 @@ export default function Confirmation() {
               Seguir comprando
             </Link>
           </Button>
-
         </div>
-
       </div>
-
     </div>
   )
 }

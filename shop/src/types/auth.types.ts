@@ -4,6 +4,24 @@ export function getDefaultRouteByRole(role: Role) {
   return role === "ADMIN" ? "/admin" : "/"
 }
 
+export function isAdminRoute(path: string) {
+  return path === "/admin" || path.startsWith("/admin/")
+}
+
+export function getPostLoginRoute(role: Role, from?: string) {
+  const defaultRoute = getDefaultRouteByRole(role)
+
+  if (!from || from === "/iniciar-sesion") {
+    return defaultRoute
+  }
+
+  if (role === "ADMIN") {
+    return isAdminRoute(from) ? from : defaultRoute
+  }
+
+  return isAdminRoute(from) ? defaultRoute : from
+}
+
 export interface User {
   id: string;
   fullName: string;

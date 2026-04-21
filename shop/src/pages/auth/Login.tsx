@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Eye, EyeOff, ArrowLeft } from "lucide-react";
 
 import { useLogin } from "@/hooks/auth.hook";
-import { getDefaultRouteByRole } from "@/types/auth.types";
+import { getPostLoginRoute } from "@/types/auth.types";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -31,12 +31,7 @@ export default function Login() {
       const data = await mutateAsync({ email: email.trim(), password });
       const from = location.state?.from as string | undefined;
 
-      if (from && from !== "/iniciar-sesion") {
-        navigate(from, { replace: true });
-        return;
-      }
-
-      navigate(getDefaultRouteByRole(data.user.role), { replace: true });
+      navigate(getPostLoginRoute(data.user.role, from), { replace: true });
     } catch (err: unknown) {
       setError(
         (err as { response?: { data?: { message?: string } } })?.response?.data

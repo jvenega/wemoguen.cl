@@ -1,9 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom"
 import {
-  LayoutDashboard,
-  Package,
-  ShoppingCart,
-  Users,
   LogOut,
   Menu
 } from "lucide-react"
@@ -12,17 +8,7 @@ import { useAuthStore } from "@/store/auth.store"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
-
-// =========================
-// NAV ITEMS
-// =========================
-
-const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
-  { label: "Productos", icon: Package, path: "/admin/productos" },
-  { label: "Pedidos", icon: ShoppingCart, path: "/admin/pedidos" },
-  { label: "Usuarios", icon: Users, path: "/admin/usuarios" }
-]
+import { adminNavItems } from "@/components/admin/admin-nav"
 
 // =========================
 // SIDEBAR CONTENT
@@ -66,7 +52,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       {/* NAV */}
       <nav className="flex flex-col gap-1 p-4 flex-1">
 
-        {navItems.map((item) => {
+        {adminNavItems.map((item) => {
           const Icon = item.icon
 
           return (

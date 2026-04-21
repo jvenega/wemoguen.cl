@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom"
 import { useAuthStore } from "@/store/auth.store"
-import { getDefaultRouteByRole } from "@/types/auth.types"
+import { getPostLoginRoute } from "@/types/auth.types"
 
 export default function PublicOnlyRoute() {
   const location = useLocation()
@@ -28,11 +28,7 @@ export default function PublicOnlyRoute() {
   if (isAuthenticated) {
     const from = location.state?.from as string | undefined
 
-    if (from && from !== "/iniciar-sesion") {
-      return <Navigate to={from} replace />
-    }
-
-    return <Navigate to={getDefaultRouteByRole(user.role)} replace />
+    return <Navigate to={getPostLoginRoute(user.role, from)} replace />
   }
 
   /* =========================
